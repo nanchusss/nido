@@ -8,24 +8,28 @@ import PropertyDetail from './pages/PropertyDetail';
 import ClientDashboard from './pages/ClientDashboard';
 import NewProperty from './pages/NewProperty';
 import EditProperty from './pages/EditProperty';
+import MendozaMap from './components/MendozaMap';
 
 import Layout from './components/Layout';
 import PrivateRoute from './components/PrivateRoute';
 import RoleRoute from './components/RoleRoute';
-
-
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Públicas */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/properties" element={<Properties />} />
-          <Route path="/properties/:id" element={<PropertyDetail />} />
 
-          {/* Protegidas */}
+          {/* 🌍 RUTAS PÚBLICAS */}
+          <Route element={<Layout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/properties" element={<Properties />} />
+            <Route path="/properties/:id" element={<PropertyDetail />} />
+            <Route path="/mapa-mendoza" element={<MendozaMap />} />
+          </Route>
+
+          {/* 🔒 RUTAS PRIVADAS */}
           <Route
             element={
               <PrivateRoute>
@@ -33,8 +37,6 @@ function App() {
               </PrivateRoute>
             }
           >
-            <Route path="/" element={<Home />} />
-
             <Route
               path="/client"
               element={
@@ -62,6 +64,7 @@ function App() {
               }
             />
           </Route>
+
         </Routes>
       </BrowserRouter>
     </AuthProvider>
