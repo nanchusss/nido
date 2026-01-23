@@ -1,0 +1,33 @@
+/* src/styles/global.css */
+
+/* RESET */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* BASE */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+}
+
+/* TIPOGRAFÍA GLOBAL — THEME FIRST */
+body {
+  font-family: 'General Sans',
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+
+  color: #1E1E1E;
+  background-color: #FAF9F7;
+}

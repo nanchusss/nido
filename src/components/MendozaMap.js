@@ -1,106 +1,125 @@
+import { useRef } from 'react';
 import styled from 'styled-components';
-import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+/* =========================
+   STYLES
+========================= */
 
 const Wrapper = styled.div`
-  max-width: 1400px;
-  margin: 4rem auto;
-  padding: 0 2rem;
-`;
-
-const Layout = styled.div`
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 3rem;
+  max-width: 900px;
+  margin: 0 auto 3rem;
+  padding: 0 24px;
 `;
 
 const MapContainer = styled.div`
-  background: #f2f2f2;
+  background: #f3f3f1;
   border-radius: 24px;
   padding: 2rem;
+  display: flex;
+  justify-content: center;
 `;
 
-const Zone = styled.div`
-  padding: 1.5rem;
-  border-radius: 12px;
-  background: ${({ active }) => (active ? '#ddd' : '#eee')};
-  cursor: pointer;
+const Tooltip = styled.div`
+  position: fixed;
+  background: #ffffff;
+  color: #333;
+  border-radius: 8px;
+  padding: 26px 10px;
+  font-size: 13px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  z-index: 9999;
+  white-space: nowrap;
 `;
 
-const Sidebar = styled.div``;
+/* =========================
+   COMPONENT
+========================= */
 
-const List = styled.ul`
-  list-style: none;
-  padding: 0;
-`;
+export default function MendozaMap() {
+  const navigate = useNavigate();
+  const objectRef = useRef(null);
+  const tooltipRef = useRef(null);
 
-const Item = styled.li`
-  margin-bottom: 0.6rem;
-`;
+  const handleSvgLoad = () => {
+    const object = objectRef.current;
+    const tooltip = tooltipRef.current;
+    if (!object || !tooltip) return;
 
-const zones = {
-  guaymallen: [
-    'Villa Nueva',
-    'San José',
-    'Dorrego',
-    'Las Cañas',
-    'Pedro Molina'
-  ],
-  capital: ['Centro', 'Quinta Sección', 'Sexta Sección'],
-};
+    const svg = object.contentDocument?.querySelector('svg');
+    if (!svg) return;
 
-function MendozaMap() {
-  const [activeZone, setActiveZone] = useState(null);
-  const [expanded, setExpanded] = useState(false);
+    // Eliminar tooltips nativos del SVG
+    svg.querySelectorAll('title').forEach((t) => t.remove());
+
+    const anunciosPorZona = {
+      mendoza: 124,
+      'san-juan': 32,
+      'san-luis': 18,
+      cordoba: 23,
+      'la-rioja': 12,
+    };
+
+    svg.querySelectorAll('path').forEach((path) => {
+      const id = path.id;
+      if (!id || !anunciosPorZona[id]) return;
+
+      path.style.cursor = 'pointer';
+      path.style.fill = '#e6e4de';
+      path.style.transition = 'fill 0.2s ease';
+
+      path.onmouseenter = () => {
+        path.style.fill = '#c9a96a';
+        tooltip.style.opacity = '1';
+      };
+
+      path.onmousemove = (e) => {
+        const rect = object.getBoundingClientRect();
+
+        tooltip.innerHTML = `${anunciosPorZona[id]} anuncios`;
+
+        tooltip.style.left =
+          rect.left + e.offsetX + 16 + 'px';
+
+        tooltip.style.top =
+          rect.top + e.offsetY + 6 + 'px';
+      };
+
+      path.onmouseleave = () => {
+        path.style.fill = '#e6e4de';
+        tooltip.style.opacity = '0';
+      };
+
+      path.onclick = () => {
+        if (id === 'mendoza') {
+          navigate('/mendoza');
+        }
+      };
+    });
+  };
 
   return (
     <Wrapper>
-      <Layout>
+      <MapContainer>
+        <object
+          ref={objectRef}
+          data="/Mapa-general.svg"
+          type="image/svg+xml"
+          onLoad={handleSvgLoad}
+          style={{
+            width: '600px',
+            maxWidth: '100%',
+            height: '420px',
+            maxHeight: '420px',
+            display: 'block',
+          }}
+        />
+      </MapContainer>
 
-        {/* MAPA (SVG SIMPLIFICADO) */}
-        <MapContainer>
-          <svg viewBox="0 0 400 300" width="100%" height="100%">
-            <path
-              d="M50 100 L180 80 L200 140 L120 180 Z"
-              fill={activeZone === 'guaymallen' ? '#bbb' : '#ccc'}
-              onMouseEnter={() => setActiveZone('guaymallen')}
-              onClick={() => setExpanded(true)}
-            />
-            <text x="90" y="130">Guaymallén</text>
-
-            <path
-              d="M200 60 L300 80 L280 150 L210 120 Z"
-              fill={activeZone === 'capital' ? '#bbb' : '#ccc'}
-              onMouseEnter={() => setActiveZone('capital')}
-              onClick={() => setExpanded(true)}
-            />
-            <text x="230" y="110">Capital</text>
-          </svg>
-        </MapContainer>
-
-        {/* SIDEBAR */}
-        <Sidebar>
-          {activeZone && (
-            <>
-              <h2>{activeZone.toUpperCase()}</h2>
-
-              <button onClick={() => setExpanded(!expanded)}>
-                {expanded ? 'Ver todo' : 'Ver barrios'}
-              </button>
-
-              {expanded && (
-                <List>
-                  {zones[activeZone].map((barrio) => (
-                    <Item key={barrio}>{barrio}</Item>
-                  ))}
-                </List>
-              )}
-            </>
-          )}
-        </Sidebar>
-
-      </Layout>
+      <Tooltip ref={tooltipRef} />
     </Wrapper>
   );
 }
-
-export default MendozaMap;

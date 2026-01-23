@@ -1,0 +1,1 @@
+en buscar nos renderiza la ruta /buscar y tiene que renderizar el MendozaMap. 
