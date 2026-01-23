@@ -1,91 +1,111 @@
 import styled from 'styled-components';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { useState } from 'react';
+
 
 /* ================== WRAPPER ================== */
 
 const Wrapper = styled.div`
-  background: ${({ theme }) => theme.colors.background};
+  background: #fafafa;
 `;
 
 /* ================== HERO ================== */
 
 const Hero = styled.section`
-  min-height: 90vh;
-  padding: 8rem 2rem 6rem;
+  position: relative;
+  min-height: 36vh;
+  padding: 180px 0 120px;
   display: flex;
   align-items: center;
+  justify-content: center;
 
   background:
-    linear-gradient(
-      rgba(255,255,255,0.55),
-      rgba(255,255,255,0.55)
-    ),
+    linear-gradient(rgba(255,255,255,0.55), rgba(255,255,255,0.75)),
     url('/mendoza.jpeg') center / cover no-repeat;
+
+  clip-path: ellipse(120% 100% at 50% 0%);
 `;
 
 const HeroInner = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
+  max-width: 720px;
   text-align: center;
+  padding: 0 1.5rem;
 `;
 
 const Title = styled.h1`
-  font-size: 3.2rem;
-  margin-bottom: 1rem;
+  font-size: clamp(2.2rem, 4vw, 2.8rem);
+  margin-bottom: 0.75rem;
+  font-weight: 700;
 `;
 
 const Subtitle = styled.p`
-  font-size: 1.1rem;
-  margin-bottom: 2.8rem;
+  font-size: 1.05rem;
+  margin-bottom: 2rem;
+  color: rgba(0,0,0,0.75);
 `;
 
-/* ================== SEARCH ================== */
+/* ================== HERO SEARCH (SIMPLE) ================== */
 
-const SearchWrapper = styled.div`
-  max-width: 900px;
-  margin: 0 auto;
-`;
-
-const SearchBar = styled.div`
+const HeroSearch = styled.div`
   background: white;
   border-radius: 999px;
   padding: 0.6rem;
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  max-width: 640px;
+  margin: 0 auto;
 `;
 
-const SearchInput = styled.input`
+const HeroInput = styled.input`
   flex: 1;
   border: none;
-  padding: 1rem 1.4rem;
+  padding: 0.9rem 1.2rem;
   font-size: 1rem;
   outline: none;
 `;
 
-const SearchButton = styled.button`
-  background: ${({ theme }) => theme.colors.primary};
+const HeroButton = styled.button`
+  background: #f47c2c;
   color: white;
   border: none;
-  padding: 0.9rem 1.8rem;
+  padding: 0.8rem 1.6rem;
   border-radius: 999px;
   font-size: 1rem;
   cursor: pointer;
 `;
 
-const Filters = styled.div`
-  display: flex;
-  gap: 0.8rem;
-  justify-content: center;
-  margin-top: 1.2rem;
+/* ================== ADVANCED SEARCH ================== */
+
+const AdvancedSearch = styled.section`
+  max-width: 1000px;
+  margin: 40px auto 3rem;
+  padding: 2rem;
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.08);
 `;
 
-const FilterChip = styled.button`
+const SearchGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr) auto;
+  gap: 1rem;
+`;
+
+const Select = styled.select`
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
   border: 1px solid #ddd;
-  background: white;
-  padding: 0.45rem 1rem;
-  border-radius: 999px;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
+`;
+
+const SearchCTA = styled.button`
+  background: #f47c2c;
+  color: white;
+  border: none;
+  padding: 0 1.6rem;
+  border-radius: 12px;
+  font-size: 1rem;
   cursor: pointer;
 `;
 
@@ -93,7 +113,7 @@ const FilterChip = styled.button`
 
 const Section = styled.section`
   max-width: 1200px;
-  margin: 5rem auto;
+  margin: 3rem auto;
   padding: 0 2rem;
 `;
 
@@ -101,84 +121,71 @@ const SectionHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2.2rem;
+  margin-bottom: 1.5rem;
 `;
 
-/* ================== ZONES ================== */
+/* ================== SLIDER ================== */
 
-const ZonesGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.6rem;
+const Slider = styled.div`
+  display: flex;
+  gap: 1.2rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
 `;
 
-const ZoneCard = styled.article`
-  height: 210px;
-  border-radius: 18px;
-  background: #ddd;
+const ZoneCard = styled.div`
+  min-width: 260px;
+  height: 200px;
+  background: #d9d9d9;
+  border-radius: 20px;
   display: flex;
   align-items: flex-end;
-  padding: 1.3rem;
+  padding: 1.2rem;
+  font-size: 1.1rem;
   color: white;
-  font-size: 1.2rem;
+  flex-shrink: 0;
 `;
 
-/* ================== MAP CARD ================== */
+/* ================== MAP CTA ================== */
 
-const MapCard = styled.div`
-  grid-column: span 2;
-  background: #e6e6e6;
-  border-radius: 18px;
-  padding: 2rem;
+const SectionMap = styled.section`
+  max-width: 700px;
+  margin: 4rem auto;
+  padding: 0 2rem 6rem;
+`;
+
+const MapCTA = styled.div`
+  height: 200px;
+  border-radius: 20px;
+  background: #e5e5e5;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
+  justify-content: center;
 `;
 
 const MapButton = styled.button`
-  background: ${({ theme }) => theme.colors.primary};
+  background: #f47c2c;
   color: white;
+  border: none;
   padding: 0.9rem 1.6rem;
   border-radius: 999px;
-  border: none;
+  font-size: 1rem;
   cursor: pointer;
-`;
-
-/* ================== PROPERTIES ================== */
-
-const PropertiesGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2.2rem;
-`;
-
-const PropertyCard = styled.article`
-  background: white;
-  border-radius: 18px;
-  overflow: hidden;
-`;
-
-const PropertyImage = styled.div`
-  height: 230px;
-  background: #ccc;
-`;
-
-const PropertyContent = styled.div`
-  padding: 1.3rem;
 `;
 
 /* ================== COMPONENT ================== */
 
-function Home() {
+export default function Home() {
   const navigate = useNavigate();
 
-  const goToMap = () => {
-    navigate('/mapa-mendoza');
-  };
+  const [operacion, setOperacion] = useState('comprar');
+  const [tipo, setTipo] = useState('departamento');
+  const [zona, setZona] = useState('capital');
 
   return (
     <Wrapper>
 
-      {/* HERO */}
+      {/* ===== HERO ===== */}
       <Hero>
         <HeroInner>
           <Title>Por fin, alguien lo hizo bien.</Title>
@@ -186,81 +193,79 @@ function Home() {
             Un portal claro, fácil y pensado para ayudarte a encontrar tu casa.
           </Subtitle>
 
-          <SearchWrapper>
-            <SearchBar>
-              <SearchInput placeholder="¿Dónde querés vivir?" />
-              <SearchButton onClick={goToMap}>
-                Buscar
-              </SearchButton>
-            </SearchBar>
-
-            <Filters>
-              <FilterChip>Comprar</FilterChip>
-              <FilterChip>Alquilar</FilterChip>
-              <FilterChip>Precio</FilterChip>
-            </Filters>
-          </SearchWrapper>
+          <HeroSearch>
+            <HeroInput placeholder="¿Dónde querés vivir?" />
+            <HeroButton onClick={() => navigate('/buscar/capital')}>
+              Buscar
+            </HeroButton>
+          </HeroSearch>
         </HeroInner>
       </Hero>
 
-      {/* ZONAS */}
+      {/* ===== BUSCADOR AVANZADO ===== */}
+      <AdvancedSearch>
+        <SearchGrid>
+          <Select value={operacion} onChange={e => setOperacion(e.target.value)}>
+            <option value="comprar">Comprar</option>
+            <option value="alquilar">Alquilar</option>
+          </Select>
+
+          <Select value={tipo} onChange={e => setTipo(e.target.value)}>
+            <option value="departamento">Departamento</option>
+            <option value="casa">Casa</option>
+            <option value="ph">PH</option>
+            <option value="terreno">Terreno</option>
+            <option value="oficina">Oficina</option>
+            <option value="local_comercial">Local Comercial</option>
+          </Select>
+
+          <Select value={zona} onChange={e => setZona(e.target.value)}>
+            <option value="capital">Capital</option>
+            <option value="godoy_cruz">Godoy Cruz</option>
+            <option value="guaymallen">Guaymallén</option>
+            <option value="lujan_de_cuyo">Luján de Cuyo</option>
+            <option value="maipu">Maipú</option>
+            <option value="las_heras">Las Heras</option>
+            <option value="san_martin">San Martín</option>
+            <option value="rivadavia">Rivadavia</option>
+            <option value="junin">Junín</option>
+            <option value="san_rafael">San Rafael</option>
+            <option value="malargue">Malargüe</option>
+            <option value="las_catitas">Las Catitas</option>
+          </Select>
+
+          <SearchCTA onClick={() => navigate(`/buscar/${zona}`)}>
+            Buscar
+          </SearchCTA>
+        </SearchGrid>
+      </AdvancedSearch>
+
+      {/* ===== EXPLORAR ===== */}
       <Section>
         <SectionHeader>
           <h2>Explorá por zona</h2>
-          <Link to="/mapa-mendoza">Ver más propiedades</Link>
+          <Link to="/buscar/capital">Ver más propiedades</Link>
         </SectionHeader>
 
-        <ZonesGrid>
+        <Slider>
           <ZoneCard>Ciudad de Mendoza</ZoneCard>
           <ZoneCard>Godoy Cruz</ZoneCard>
           <ZoneCard>Guaymallén</ZoneCard>
           <ZoneCard>Luján de Cuyo</ZoneCard>
           <ZoneCard>Maipú</ZoneCard>
           <ZoneCard>Las Heras</ZoneCard>
-          <ZoneCard>San Martín</ZoneCard>
-          <ZoneCard>Maipú</ZoneCard>
-
-          <MapCard>
-            <MapButton onClick={goToMap}>
-              Ver propiedades en mapa
-            </MapButton>
-          </MapCard>
-        </ZonesGrid>
+        </Slider>
       </Section>
 
-      {/* PROPIEDADES */}
-      <Section>
-        <h2>Propiedades curadas</h2>
-
-        <PropertiesGrid>
-          <PropertyCard>
-            <PropertyImage />
-            <PropertyContent>
-              <h3>Casa en Chacras de Coria</h3>
-              <p>USD 180.000</p>
-            </PropertyContent>
-          </PropertyCard>
-
-          <PropertyCard>
-            <PropertyImage />
-            <PropertyContent>
-              <h3>Departamento en Ciudad</h3>
-              <p>USD 95.000</p>
-            </PropertyContent>
-          </PropertyCard>
-
-          <PropertyCard>
-            <PropertyImage />
-            <PropertyContent>
-              <h3>Casa en Luján de Cuyo</h3>
-              <p>USD 140.000</p>
-            </PropertyContent>
-          </PropertyCard>
-        </PropertiesGrid>
-      </Section>
+      {/* ===== MAP CTA ===== */}
+      <SectionMap>
+        <MapCTA>
+          <MapButton onClick={() => navigate('/buscar/capital')}>
+            Ver propiedades en mapa
+          </MapButton>
+        </MapCTA>
+      </SectionMap>
 
     </Wrapper>
   );
 }
-
-export default Home;

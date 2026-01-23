@@ -10,10 +10,18 @@ const propertySchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    
     location: {
-      type: String,
-      required: true,
+      lat: {
+        type: Number,
+        required: true,
+      },
+      lng: {
+        type: Number,
+        required: true,
+      },
     },
+  
     description: {
       type: String,
     },
@@ -22,6 +30,7 @@ const propertySchema = new mongoose.Schema(
         type: String,
       },
     ],
+    
     author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

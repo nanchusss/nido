@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mapa de Mendoza</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      margin-top: 40px;
+    }
+
+    svg {
+      width: 400px;
+      max-width: 90vw;
+      height: auto;
+    }
+
+    .zona {
+      fill: transparent;
+      cursor: pointer;
+    }
+
+    .zona:hover {
+      fill: rgba(255, 0, 0, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+<svg viewBox="0 0 400 800">
+  <!-- imagen de fondo -->
+ <image href="mendoza.png" x="0" y="100" width="400" height="600" />
+
+
+  <!-- ZONA DE PRUEBA (rectángulo) -->
+  <a href="#" onclick="alert('Zona clickeada')">
+    <rect
+      class="zona"
+      x="140"
+      y="180"
+      width="120"
+      height="120"
+    />
+  </a>
+
+</svg>
+
+</body>
+</html>

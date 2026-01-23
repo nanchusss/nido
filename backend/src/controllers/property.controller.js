@@ -1,4 +1,5 @@
 import Property from '../models/Property.js';
+import { geocodeAddress } from '../services/geocoding.service.js';
 
 // GET /api/properties
 export async function getProperties(req, res) {
@@ -16,18 +17,39 @@ export async function getProperties(req, res) {
 // POST /api/properties
 export async function createProperty(req, res) {
   try {
-    const { title, price, location, description, images } = req.body;
+    const {
+      title,
+      price,
+      location,
+      address,
+      description,
+      images,
+    } = req.body;
 
-    if (!title || !price || !location) {
+    if (!title || !price) {
       return res.status(400).json({
-        message: 'Título, precio y ubicación son obligatorios',
+        message: 'Título y precio son obligatorios',
+      });
+    }
+
+    let finalLocation = location;
+
+    // 👉 NUEVO: si viene address, geocodificamos
+    if (address && !location) {
+      finalLocation = await geocodeAddress(address);
+    }
+
+    if (!finalLocation) {
+      return res.status(400).json({
+        message: 'Ubicación o dirección es obligatoria',
       });
     }
 
     const property = await Property.create({
       title,
       price,
-      location,
+      location: finalLocation,
+      address: address || null,
       description,
       images: images || [],
       author: req.user.id,
@@ -35,6 +57,6 @@ export async function createProperty(req, res) {
 
     res.status(201).json(property);
   } catch (error) {
-    res.status(500).json({ message: 'Error al crear propiedad' });
+    res.status(500).json({ message: error.message });
   }
 }
