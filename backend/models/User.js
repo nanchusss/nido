@@ -16,21 +16,21 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       enum: ['USER', 'CLIENT', 'ADMIN'],
-      default: 'CLIENT',
+      default: 'USER',
     },
 
-    isConfirmed: {
+    consentAccepted: {
       type: Boolean,
-      default: false,
+      required: true,
     },
 
     confirmationToken: {
       type: String,
     },
 
-    consentAccepted: {
+    isConfirmed: {
       type: Boolean,
-      required: true,
+      default: false,
     },
   },
   { timestamps: true }
