@@ -10,34 +10,35 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
 
-    if (storedToken && storedUser) {
+    if (storedToken) {
       setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+      setUser({}); // usuario placeholder
     }
 
     setLoading(false);
   }, []);
 
   const login = async (credentials) => {
-    const data = await apiRequest('/auth/login', {
-      method: 'POST',
-      body: credentials,
-    });
+    try {
+      const data = await apiRequest('/auth/login', {
+        method: 'POST',
+        body: credentials,
+      });
 
-    setToken(data.token);
-    setUser(data.user);
+      setToken(data.token);
+      setUser({}); // backend no devuelve user aún
 
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('token', data.token);
+    } catch (error) {
+      throw error;
+    }
   };
 
   const logout = () => {
     setToken(null);
     setUser(null);
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
   };
 
   return (
@@ -45,7 +46,7 @@ export function AuthProvider({ children }) {
       value={{
         user,
         token,
-        isAuthenticated: !!user,
+        isAuthenticated: !!token,
         login,
         logout,
         loading,
@@ -59,3 +60,4 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   return useContext(AuthContext);
 }
+

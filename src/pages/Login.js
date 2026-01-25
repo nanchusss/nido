@@ -21,20 +21,21 @@ function Login() {
   }, [isAuthenticated, navigate, from]);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
+  e.preventDefault();
+  setError(null);
 
-    if (!email || !password) {
-      setError('Completá email y contraseña');
-      return;
-    }
+  if (!email || !password) {
+    setError('Completá email y contraseña');
+    return;
+  }
 
-    await login({
-      email,
-      password,
-      role: 'CLIENT'
-    });
-  };
+  try {
+    await login({ email, password });
+  } catch (err) {
+    setError(err.message || 'Error al iniciar sesión');
+  }
+};
+
 
   if (loading) return <p>Cargando...</p>;
 
