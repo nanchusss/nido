@@ -96,7 +96,7 @@ const Page = styled.div`
 const Card = styled.div`
   background: white;
   padding: 48px;
-  width: 100%;
+  width: 50%;
   height: 50%;
   max-width: 420px;
   border-radius: 20px;

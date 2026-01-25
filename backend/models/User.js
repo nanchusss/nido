@@ -7,19 +7,33 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    password: {
+
+    passwordHash: {
       type: String,
       required: true,
     },
+
     role: {
       type: String,
       enum: ['USER', 'CLIENT', 'ADMIN'],
-      default: 'USER',
+      default: 'CLIENT',
+    },
+
+    isConfirmed: {
+      type: Boolean,
+      default: false,
+    },
+
+    confirmationToken: {
+      type: String,
+    },
+
+    consentAccepted: {
+      type: Boolean,
+      required: true,
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 export default mongoose.model('User', userSchema);
