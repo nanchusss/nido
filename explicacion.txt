@@ -1,3 +1,11 @@
 en buscar nos renderiza la ruta /buscar y tiene que renderizar el MendozaMap. 
 
 Api google AIzaSyAkny4jxyq6wC2RZqwPxhkMwOfeKzCw8aE
+
+MongoDB
+
+Usarname: nidoadmin
+Contraseña: Chinita385
+String: mongodb+srv://nidoadmin:Chinita385@cluster.0w2e8xc.mongodb.net/?appName=Cluster
+
+Correcto segun gpt mongodb+srv://nidoadmin:Chinita385@cluster.0w2e8xc.mongodb.net/nido?retryWrites=true&w=majority
