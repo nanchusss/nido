@@ -1,24 +1,24 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { useAuth } from '../context/AuthContext';
 
 function Register() {
-  const { login } = useAuth(); // reutilizamos login como mock
-  const navigate = useNavigate();
-
   const [form, setForm] = useState({
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    consent: false
   });
 
   const [error, setError] = useState(null);
+  const [submitted, setSubmitted] = useState(false);
 
   const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+
     setForm({
       ...form,
-      [e.target.name]: e.target.value
+      [name]: type === 'checkbox' ? checked : value
     });
   };
 
@@ -41,22 +41,46 @@ function Register() {
       return;
     }
 
-    // 🔹 REGISTRO MOCK (frontend)
-    await login({
-      email: form.email,
-      password: form.password,
-      role: 'CLIENT'
-    });
+    if (!form.consent) {
+      setError('Debés aceptar el uso de datos para continuar');
+      return;
+    }
 
-    navigate('/publicar');
+    // 🔒 REGISTRO MOCK + ENVÍO DE MAIL (SIMULADO)
+    await new Promise(res => setTimeout(res, 800));
+
+    setSubmitted(true);
   };
+
+  if (submitted) {
+    return (
+      <Page>
+        <Card>
+          <Title>Confirmá tu correo</Title>
+          <Subtitle>
+            Te enviamos un email a <strong>{form.email}</strong><br />
+            para confirmar tu cuenta.
+          </Subtitle>
+
+          <Info>
+            Revisá tu bandeja de entrada o spam.
+            Una vez confirmado, vas a poder publicar propiedades.
+          </Info>
+
+          <BackLink to="/login">
+            Volver al login
+          </BackLink>
+        </Card>
+      </Page>
+    );
+  }
 
   return (
     <Page>
       <Card>
         <Title>Crear cuenta</Title>
         <Subtitle>
-          Registrate para publicar y administrar tus propiedades
+          Registrate para publicar y gestionar tus propiedades
         </Subtitle>
 
         <form onSubmit={handleSubmit}>
@@ -84,7 +108,24 @@ function Register() {
             onChange={handleChange}
           />
 
-          <PrimaryButton type="submit">
+          <Consent>
+            <input
+              type="checkbox"
+              name="consent"
+              checked={form.consent}
+              onChange={handleChange}
+            />
+            <label>
+              Acepto el{' '}
+              <Link to="/terminos">uso de mis datos</Link>{' '}
+              según la política de privacidad
+            </label>
+          </Consent>
+
+          <PrimaryButton
+            type="submit"
+            disabled={!form.consent}
+          >
             Crear cuenta
           </PrimaryButton>
         </form>
@@ -111,16 +152,25 @@ const Page = styled.div`
   padding-top: 220px;
   display: flex;
   justify-content: center;
-  background: #f6f6f6;
 `;
+
 
 const Card = styled.div`
   background: white;
-  padding: 48px;
+  padding: 40px;
   width: 100%;
   max-width: 420px;
+
+  /* 🔑 esto reemplaza height */
+  min-height: 360px;
+  max-height: 520px;
+
   border-radius: 20px;
   box-shadow: 0 24px 48px rgba(0,0,0,0.08);
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 `;
 
 const Title = styled.h2`
@@ -140,11 +190,28 @@ const Input = styled.input`
   margin-bottom: 14px;
   border-radius: 10px;
   border: 1px solid #ddd;
-  font-size: 15px;
 
   &:focus {
     outline: none;
     border-color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
+const Consent = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: #555;
+  margin: 16px 0 24px;
+
+  input {
+    margin-top: 3px;
+  }
+
+  a {
+    color: ${({ theme }) => theme.colors.primary};
+    text-decoration: underline;
   }
 `;
 
@@ -156,11 +223,11 @@ const PrimaryButton = styled.button`
   background: ${({ theme }) => theme.colors.primary};
   color: white;
   font-weight: 600;
-  margin-top: 8px;
   cursor: pointer;
 
-  &:hover {
-    opacity: 0.9;
+  &:disabled {
+    background: #ccc;
+    cursor: not-allowed;
   }
 `;
 
@@ -180,15 +247,23 @@ const LoginLink = styled(Link)`
   margin-left: 6px;
   color: ${({ theme }) => theme.colors.primary};
   font-weight: 600;
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
 `;
 
 const Error = styled.p`
   color: #d32f2f;
   margin-top: 16px;
   text-align: center;
+`;
+
+const Info = styled.p`
+  color: #555;
+  line-height: 1.5;
+`;
+
+const BackLink = styled(Link)`
+  display: block;
+  margin-top: 24px;
+  text-align: center;
+  color: ${({ theme }) => theme.colors.primary};
+  font-weight: 600;
 `;
