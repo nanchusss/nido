@@ -35,22 +35,31 @@ export const register = async (req, res) => {
       isConfirmed: false,
     });
 
-    const confirmUrl = `${process.env.FRONT_URL}/verify?token=${confirmationToken}`;
+    // 🔒 Enviar email SOLO si SMTP está configurado
+    if (
+      process.env.SMTP_HOST &&
+      process.env.SMTP_USER &&
+      process.env.SMTP_PASS &&
+      process.env.FRONT_URL
+    ) {
+      const confirmUrl = `${process.env.FRONT_URL}/verify?token=${confirmationToken}`;
 
-    await sendEmail({
-      to: email,
-      subject: 'Confirmá tu cuenta',
-      html: `
-        <p>Confirmá tu cuenta haciendo click acá:</p>
-        <a href="${confirmUrl}">Confirmar cuenta</a>
-      `,
-    });
+      await sendEmail({
+        to: email,
+        subject: 'Confirmá tu cuenta',
+        html: `
+          <p>Confirmá tu cuenta haciendo click acá:</p>
+          <a href="${confirmUrl}">Confirmar cuenta</a>
+        `,
+      });
+    }
 
     res.status(201).json({
       message: 'Registro exitoso. Revisá tu correo para confirmar la cuenta.',
     });
 
   } catch (error) {
+    console.error('REGISTER ERROR:', error);
     res.status(500).json({ message: 'Error en el registro' });
   }
 };
@@ -94,6 +103,7 @@ export const login = async (req, res) => {
     res.status(500).json({ message: 'Error en login' });
   }
 };
+
 
 
 
