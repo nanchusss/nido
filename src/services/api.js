@@ -1,4 +1,4 @@
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_URL = 'https://nido-backend-9k6z.onrender.com/api';
 
 export async function apiRequest(endpoint, options = {}) {
   const { method = 'GET', body, token } = options;
@@ -17,10 +17,13 @@ export async function apiRequest(endpoint, options = {}) {
     body: body ? JSON.stringify(body) : undefined,
   });
 
-  const data = await response.json();
+  let data = null;
+  try {
+    data = await response.json();
+  } catch {}
 
   if (!response.ok) {
-    throw new Error(data.message || 'Error en la API');
+    throw new Error(data?.message || `HTTP ${response.status}`);
   }
 
   return data;
