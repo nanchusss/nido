@@ -8,32 +8,21 @@ import { useNavigate } from 'react-router-dom';
 
 const MAP_COLORS = {
   mendozaBase: '#ffffff',
-  otherBase: '#c3c2beff',
   border: '#cfcabf',
   hover: '#e9b86fff',
 };
 
 /* =========================
-   BASE DEPARTAMENTOS
+   DEPARTAMENTOS GRAN MENDOZA
 ========================= */
 
 const DEPARTAMENTOS = [
-  'mendoza-gran-mendoza',
-  'mendoza-capital',
-  'mendoza-godoy-cruz',
   'mendoza-guaymallen',
   'mendoza-las-heras',
-  'mendoza-lujan-de-cuyo',
+  'mendoza-godoy-cruz',
+  'mendoza-capital',
   'mendoza-maipu',
-  'mendoza-junin',
-  'mendoza-rivadavia',
-  'mendoza-san-martin',
-  'mendoza-san-carlos',
-  'mendoza-tunuyan',
-  'mendoza-tupungato',
-  'mendoza-san-rafael',
-  'mendoza-general-alvear',
-  'mendoza-malargue',
+  'mendoza-lujan-de-cuyo',
 ];
 
 /* =========================
@@ -41,7 +30,7 @@ const DEPARTAMENTOS = [
 ========================= */
 
 const Wrapper = styled.div`
-  max-width: 900px;
+  max-width: 1100px;
   margin: 0 auto 3rem;
   padding: 0 24px;
 `;
@@ -82,7 +71,7 @@ const formatZonaName = (id) =>
    COMPONENT
 ========================= */
 
-export default function MendozaMap({ anunciosPorZona }) {
+export default function GranMendozaMap({ anunciosPorZona }) {
   const navigate = useNavigate();
   const objectRef = useRef(null);
   const tooltipRef = useRef(null);
@@ -91,16 +80,6 @@ export default function MendozaMap({ anunciosPorZona }) {
   useEffect(() => {
     anunciosRef.current = anunciosPorZona || {};
   }, [anunciosPorZona]);
-
-  const handleNavigate = (id) => {
-    if (id === 'mendoza-gran-mendoza') {
-      navigate('/buscar/gran-mendoza');
-    } else {
-      navigate('/buscar/mendoza', {
-        state: { departamento: id },
-      });
-    }
-  };
 
   const handleSvgLoad = () => {
     const object = objectRef.current;
@@ -113,27 +92,28 @@ export default function MendozaMap({ anunciosPorZona }) {
     svg.querySelectorAll('title').forEach((t) => t.remove());
 
     svg.querySelectorAll('path').forEach((path) => {
-      if (!path.id) return;
+      const rawId = path.id;
+      if (!rawId || !rawId.startsWith('departamento-')) return;
 
-      const id = path.id
+      const zona = rawId.replace('departamento-', '');
+
+      const id = `mendoza-${zona
         .toLowerCase()
         .trim()
-        .replace(/_/g, '-')
-        .replace(/\s+/g, '-');
+        .replace(/\s+/g, '-')
+        .replace(/_/g, '-')}`;
 
-      const isMendoza = id.startsWith('mendoza');
-      const baseFill = isMendoza
-        ? MAP_COLORS.mendozaBase
-        : MAP_COLORS.otherBase;
+      if (!DEPARTAMENTOS.includes(id)) return;
 
       const getCantidad = () => anunciosRef.current[id] ?? 0;
 
       path.style.cursor = 'pointer';
-      path.style.fill = baseFill;
+      path.style.fill = MAP_COLORS.mendozaBase;
       path.style.stroke = MAP_COLORS.border;
       path.style.strokeWidth = '1.6px';
       path.style.transition =
         'fill 0.2s ease, stroke-width 0.2s ease';
+      path.style.pointerEvents = 'all';
 
       path.onmouseenter = () => {
         path.style.fill = MAP_COLORS.hover;
@@ -154,13 +134,13 @@ export default function MendozaMap({ anunciosPorZona }) {
       };
 
       path.onmouseleave = () => {
-        path.style.fill = baseFill;
+        path.style.fill = MAP_COLORS.mendozaBase;
         path.style.strokeWidth = '1.6px';
         tooltip.style.opacity = '0';
       };
 
       path.onclick = () => {
-        handleNavigate(id);
+        navigate(`/buscar/gran-mendoza/${id}`);
       };
     });
   };
@@ -170,58 +150,19 @@ export default function MendozaMap({ anunciosPorZona }) {
       <MapContainer>
         <object
           ref={objectRef}
-          data="/Mapa-general-2.svg"
+          data="/Mapa-gran-mendoza.svg"
           type="image/svg+xml"
           onLoad={handleSvgLoad}
           style={{
             width: '100%',
-            maxWidth: '720px',
-            height: '520px',
+            maxWidth: '980px',
+            height: '600px',
             display: 'block',
           }}
         />
       </MapContainer>
 
-      {/* LISTADO POR DEPARTAMENTO */}
-      <div style={{ marginTop: '2.5rem' }}>
-        <h4 style={{ marginBottom: '1rem' }}>
-          Viviendas por departamento
-        </h4>
-
-        <ul
-          style={{
-            listStyle: 'none',
-            padding: 0,
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '8px 24px',
-          }}
-        >
-          {DEPARTAMENTOS.map((id) => {
-            const cantidad = anunciosPorZona?.[id] ?? 0;
-
-            return (
-              <li
-                key={id}
-                onClick={() => handleNavigate(id)}
-                style={{
-                  cursor: 'pointer',
-                  color: '#f27a1a',
-                  fontSize: '14px',
-                }}
-              >
-                {formatZonaName(id)}{' '}
-                <span style={{ color: '#999' }}>
-                  ({cantidad} anuncios)
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-
       <Tooltip ref={tooltipRef} />
     </Wrapper>
   );
 }
-

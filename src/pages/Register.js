@@ -1,68 +1,91 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { useAuth } from '../context/AuthContext';
 
-function Login() {
-  const { login, loading, isAuthenticated } = useAuth();
+function Register() {
+  const { login } = useAuth(); // reutilizamos login como mock
   const navigate = useNavigate();
-  const location = useLocation();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [form, setForm] = useState({
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+
   const [error, setError] = useState(null);
 
-  const from = location.state?.from?.pathname || '/publicar';
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate(from, { replace: true });
-    }
-  }, [isAuthenticated, navigate, from]);
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
-    if (!email || !password) {
-      setError('Completá email y contraseña');
+    if (!form.email || !form.password || !form.confirmPassword) {
+      setError('Completá todos los campos');
       return;
     }
 
+    if (form.password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+
+    if (form.password !== form.confirmPassword) {
+      setError('Las contraseñas no coinciden');
+      return;
+    }
+
+    // 🔹 REGISTRO MOCK (frontend)
     await login({
-      email,
-      password,
+      email: form.email,
+      password: form.password,
       role: 'CLIENT'
     });
-  };
 
-  if (loading) return <p>Cargando...</p>;
+    navigate('/publicar');
+  };
 
   return (
     <Page>
       <Card>
-        <Title>Ingresar</Title>
+        <Title>Crear cuenta</Title>
         <Subtitle>
-          Accedé para publicar y gestionar tus propiedades
+          Registrate para publicar y administrar tus propiedades
         </Subtitle>
 
         <form onSubmit={handleSubmit}>
           <Input
             type="email"
+            name="email"
             placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={form.email}
+            onChange={handleChange}
           />
 
           <Input
             type="password"
+            name="password"
             placeholder="Contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={form.password}
+            onChange={handleChange}
+          />
+
+          <Input
+            type="password"
+            name="confirmPassword"
+            placeholder="Repetir contraseña"
+            value={form.confirmPassword}
+            onChange={handleChange}
           />
 
           <PrimaryButton type="submit">
-            Entrar
+            Crear cuenta
           </PrimaryButton>
         </form>
 
@@ -70,23 +93,21 @@ function Login() {
 
         <Divider />
 
-        <RegisterText>
-          ¿No tenés cuenta?
-          <RegisterLink to="/register">
-            Crear cuenta
-          </RegisterLink>
-        </RegisterText>
+        <LoginText>
+          ¿Ya tenés cuenta?
+          <LoginLink to="/login">Ingresar</LoginLink>
+        </LoginText>
       </Card>
     </Page>
   );
 }
 
-export default Login;
+export default Register;
 
 /* ================= STYLES ================= */
 
 const Page = styled.div`
-  min-height: 810vh;
+  min-height: 100vh;
   padding-top: 220px;
   display: flex;
   justify-content: center;
@@ -97,7 +118,6 @@ const Card = styled.div`
   background: white;
   padding: 48px;
   width: 100%;
-  height: 50%;
   max-width: 420px;
   border-radius: 20px;
   box-shadow: 0 24px 48px rgba(0,0,0,0.08);
@@ -150,13 +170,13 @@ const Divider = styled.div`
   margin: 32px 0 20px;
 `;
 
-const RegisterText = styled.p`
+const LoginText = styled.p`
   text-align: center;
   font-size: 14px;
   color: #555;
 `;
 
-const RegisterLink = styled(Link)`
+const LoginLink = styled(Link)`
   margin-left: 6px;
   color: ${({ theme }) => theme.colors.primary};
   font-weight: 600;

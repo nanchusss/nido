@@ -1,1 +1,3 @@
 en buscar nos renderiza la ruta /buscar y tiene que renderizar el MendozaMap. 
+
+Api google AIzaSyAkny4jxyq6wC2RZqwPxhkMwOfeKzCw8aE

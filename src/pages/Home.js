@@ -2,8 +2,18 @@ import styled from 'styled-components';
 import { useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react';
 
+/* ================== CONSTANTES ================== */
 
-/* ================== WRAPPER ================== */
+const GRAN_MENDOZA = [
+  'capital',
+  'godoy_cruz',
+  'guaymallen',
+  'lujan_de_cuyo',
+  'maipu',
+  'las_heras',
+];
+
+/* ================== STYLES ================== */
 
 const Wrapper = styled.div`
   background: #fafafa;
@@ -44,14 +54,13 @@ const Subtitle = styled.p`
   color: rgba(0,0,0,0.75);
 `;
 
-/* ================== HERO SEARCH (SIMPLE) ================== */
+/* ================== HERO SEARCH ================== */
 
 const HeroSearch = styled.div`
   background: white;
   border-radius: 999px;
   padding: 0.6rem;
   display: flex;
-  align-items: center;
   gap: 0.6rem;
   max-width: 640px;
   margin: 0 auto;
@@ -96,7 +105,6 @@ const Select = styled.select`
   padding: 0.9rem 1rem;
   border-radius: 10px;
   border: 1px solid #ddd;
-  font-size: 0.95rem;
 `;
 
 const SearchCTA = styled.button`
@@ -105,70 +113,6 @@ const SearchCTA = styled.button`
   border: none;
   padding: 0 1.6rem;
   border-radius: 12px;
-  font-size: 1rem;
-  cursor: pointer;
-`;
-
-/* ================== SECTIONS ================== */
-
-const Section = styled.section`
-  max-width: 1200px;
-  margin: 3rem auto;
-  padding: 0 2rem;
-`;
-
-const SectionHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-`;
-
-/* ================== SLIDER ================== */
-
-const Slider = styled.div`
-  display: flex;
-  gap: 1.2rem;
-  overflow-x: auto;
-  padding-bottom: 1rem;
-`;
-
-const ZoneCard = styled.div`
-  min-width: 260px;
-  height: 200px;
-  background: #d9d9d9;
-  border-radius: 20px;
-  display: flex;
-  align-items: flex-end;
-  padding: 1.2rem;
-  font-size: 1.1rem;
-  color: white;
-  flex-shrink: 0;
-`;
-
-/* ================== MAP CTA ================== */
-
-const SectionMap = styled.section`
-  max-width: 700px;
-  margin: 4rem auto;
-  padding: 0 2rem 6rem;
-`;
-
-const MapCTA = styled.div`
-  height: 200px;
-  border-radius: 20px;
-  background: #e5e5e5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-const MapButton = styled.button`
-  background: #f47c2c;
-  color: white;
-  border: none;
-  padding: 0.9rem 1.6rem;
-  border-radius: 999px;
   font-size: 1rem;
   cursor: pointer;
 `;
@@ -182,10 +126,25 @@ export default function Home() {
   const [tipo, setTipo] = useState('departamento');
   const [zona, setZona] = useState('capital');
 
+  const handleAdvancedSearch = () => {
+    const zonaNormalizada = `mendoza-${zona.replace(/_/g, '-')}`;
+
+    const query = new URLSearchParams({
+      operacion,
+      tipo,
+    }).toString();
+
+    if (GRAN_MENDOZA.includes(zona)) {
+      navigate(`/buscar/gran-mendoza/${zonaNormalizada}?${query}`);
+    } else {
+      navigate(`/buscar/mendoza?departamento=${zonaNormalizada}&${query}`);
+    }
+  };
+
   return (
     <Wrapper>
 
-      {/* ===== HERO ===== */}
+      {/* HERO */}
       <Hero>
         <HeroInner>
           <Title>Por fin, alguien lo hizo bien.</Title>
@@ -195,19 +154,20 @@ export default function Home() {
 
           <HeroSearch>
             <HeroInput placeholder="¿Dónde querés vivir?" />
-            <HeroButton onClick={() => navigate('/buscar/capital')}>
+            <HeroButton onClick={() => navigate('/buscar')}>
               Buscar
             </HeroButton>
           </HeroSearch>
         </HeroInner>
       </Hero>
 
-      {/* ===== BUSCADOR AVANZADO ===== */}
+      {/* BUSCADOR AVANZADO */}
       <AdvancedSearch>
         <SearchGrid>
           <Select value={operacion} onChange={e => setOperacion(e.target.value)}>
             <option value="comprar">Comprar</option>
             <option value="alquilar">Alquilar</option>
+            <option value="alquiler_temporal">Alquiler temporal</option>
           </Select>
 
           <Select value={tipo} onChange={e => setTipo(e.target.value)}>
@@ -216,7 +176,7 @@ export default function Home() {
             <option value="ph">PH</option>
             <option value="terreno">Terreno</option>
             <option value="oficina">Oficina</option>
-            <option value="local_comercial">Local Comercial</option>
+            <option value="local_comercial">Local comercial</option>
           </Select>
 
           <Select value={zona} onChange={e => setZona(e.target.value)}>
@@ -226,45 +186,15 @@ export default function Home() {
             <option value="lujan_de_cuyo">Luján de Cuyo</option>
             <option value="maipu">Maipú</option>
             <option value="las_heras">Las Heras</option>
-            <option value="san_martin">San Martín</option>
-            <option value="rivadavia">Rivadavia</option>
-            <option value="junin">Junín</option>
             <option value="san_rafael">San Rafael</option>
             <option value="malargue">Malargüe</option>
-            <option value="las_catitas">Las Catitas</option>
           </Select>
 
-          <SearchCTA onClick={() => navigate(`/buscar/${zona}`)}>
+          <SearchCTA onClick={handleAdvancedSearch}>
             Buscar
           </SearchCTA>
         </SearchGrid>
       </AdvancedSearch>
-
-      {/* ===== EXPLORAR ===== */}
-      <Section>
-        <SectionHeader>
-          <h2>Explorá por zona</h2>
-          <Link to="/buscar/capital">Ver más propiedades</Link>
-        </SectionHeader>
-
-        <Slider>
-          <ZoneCard>Ciudad de Mendoza</ZoneCard>
-          <ZoneCard>Godoy Cruz</ZoneCard>
-          <ZoneCard>Guaymallén</ZoneCard>
-          <ZoneCard>Luján de Cuyo</ZoneCard>
-          <ZoneCard>Maipú</ZoneCard>
-          <ZoneCard>Las Heras</ZoneCard>
-        </Slider>
-      </Section>
-
-      {/* ===== MAP CTA ===== */}
-      <SectionMap>
-        <MapCTA>
-          <MapButton onClick={() => navigate('/buscar/capital')}>
-            Ver propiedades en mapa
-          </MapButton>
-        </MapCTA>
-      </SectionMap>
 
     </Wrapper>
   );

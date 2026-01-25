@@ -7,33 +7,30 @@ import { useNavigate } from 'react-router-dom';
 ========================= */
 
 const MAP_COLORS = {
-  mendozaBase: '#ffffff',
-  otherBase: '#c3c2beff',
+  base: '#ffffff',
   border: '#cfcabf',
   hover: '#e9b86fff',
 };
 
 /* =========================
-   BASE DEPARTAMENTOS
+   BARRIOS CAPITAL (IDs REALES SVG)
 ========================= */
 
-const DEPARTAMENTOS = [
-  'mendoza-gran-mendoza',
-  'mendoza-capital',
-  'mendoza-godoy-cruz',
-  'mendoza-guaymallen',
-  'mendoza-las-heras',
-  'mendoza-lujan-de-cuyo',
-  'mendoza-maipu',
-  'mendoza-junin',
-  'mendoza-rivadavia',
-  'mendoza-san-martin',
-  'mendoza-san-carlos',
-  'mendoza-tunuyan',
-  'mendoza-tupungato',
-  'mendoza-san-rafael',
-  'mendoza-general-alvear',
-  'mendoza-malargue',
+const BARRIOS = [
+  'ciudad-centro',
+  'ciudad-primera-seccion',
+  'ciudad-segunda-seccion',
+  'ciudad-tercera-seccion',
+  'ciudad-cuarta-seccion',
+  'ciudad-quinta-seccion',
+  'ciudad-sexta-seccion',
+  'ciudad-septima-seccion',
+  'ciudad-parque-general-san-martin',
+  'ciudad-octava',
+  'ciudad-la-favorita',
+  'ciudad-los-cerros',
+  'ciudad-dalvian',
+  'ciudad-piedemonte',
 ];
 
 /* =========================
@@ -41,8 +38,8 @@ const DEPARTAMENTOS = [
 ========================= */
 
 const Wrapper = styled.div`
-  max-width: 900px;
-  margin: 0 auto 3rem;
+  max-width: 1100px;
+  margin: 0 auto 4rem;
   padding: 0 24px;
 `;
 
@@ -51,6 +48,7 @@ const MapContainer = styled.div`
   border-radius: 24px;
   display: flex;
   justify-content: center;
+  margin-bottom: 4rem;
 `;
 
 const Tooltip = styled.div`
@@ -68,13 +66,31 @@ const Tooltip = styled.div`
   white-space: nowrap;
 `;
 
+const ListTitle = styled.h4`
+  margin-bottom: 1.25rem;
+`;
+
+const List = styled.ul`
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 24px;
+`;
+
+const ListItem = styled.li`
+  cursor: pointer;
+  color: #f27a1a;
+  font-size: 14px;
+`;
+
 /* =========================
    HELPERS
 ========================= */
 
-const formatZonaName = (id) =>
+const formatBarrioName = (id) =>
   id
-    .replace(/^mendoza-/, '')
+    .replace(/^ciudad-/, '')
     .replace(/-/g, ' ')
     .replace(/\b\w/g, (l) => l.toUpperCase());
 
@@ -82,7 +98,7 @@ const formatZonaName = (id) =>
    COMPONENT
 ========================= */
 
-export default function MendozaMap({ anunciosPorZona }) {
+export default function CapitalMap({ anunciosPorZona }) {
   const navigate = useNavigate();
   const objectRef = useRef(null);
   const tooltipRef = useRef(null);
@@ -91,16 +107,6 @@ export default function MendozaMap({ anunciosPorZona }) {
   useEffect(() => {
     anunciosRef.current = anunciosPorZona || {};
   }, [anunciosPorZona]);
-
-  const handleNavigate = (id) => {
-    if (id === 'mendoza-gran-mendoza') {
-      navigate('/buscar/gran-mendoza');
-    } else {
-      navigate('/buscar/mendoza', {
-        state: { departamento: id },
-      });
-    }
-  };
 
   const handleSvgLoad = () => {
     const object = objectRef.current;
@@ -115,53 +121,45 @@ export default function MendozaMap({ anunciosPorZona }) {
     svg.querySelectorAll('path').forEach((path) => {
       if (!path.id) return;
 
-      const id = path.id
-        .toLowerCase()
-        .trim()
-        .replace(/_/g, '-')
-        .replace(/\s+/g, '-');
+      const id = path.id.toLowerCase();
 
-      const isMendoza = id.startsWith('mendoza');
-      const baseFill = isMendoza
-        ? MAP_COLORS.mendozaBase
-        : MAP_COLORS.otherBase;
+      if (!BARRIOS.includes(id)) return;
 
       const getCantidad = () => anunciosRef.current[id] ?? 0;
 
       path.style.cursor = 'pointer';
-      path.style.fill = baseFill;
+      path.style.fill = MAP_COLORS.base;
       path.style.stroke = MAP_COLORS.border;
       path.style.strokeWidth = '1.6px';
-      path.style.transition =
-        'fill 0.2s ease, stroke-width 0.2s ease';
+      path.style.transition = 'fill 0.2s ease, stroke-width 0.2s ease';
 
-      path.onmouseenter = () => {
+      path.addEventListener('mouseenter', () => {
         path.style.fill = MAP_COLORS.hover;
         path.style.strokeWidth = '2.4px';
         tooltip.style.opacity = '1';
-      };
+      });
 
-      path.onmousemove = (e) => {
+      path.addEventListener('mousemove', (e) => {
         const rect = object.getBoundingClientRect();
 
         tooltip.innerHTML = `
-          <strong>${formatZonaName(id)}</strong><br/>
+          <strong>${formatBarrioName(id)}</strong><br/>
           ${getCantidad()} anuncios
         `;
 
         tooltip.style.left = rect.left + e.offsetX + 92 + 'px';
         tooltip.style.top = rect.top + e.offsetY + 56 + 'px';
-      };
+      });
 
-      path.onmouseleave = () => {
-        path.style.fill = baseFill;
+      path.addEventListener('mouseleave', () => {
+        path.style.fill = MAP_COLORS.base;
         path.style.strokeWidth = '1.6px';
         tooltip.style.opacity = '0';
-      };
+      });
 
-      path.onclick = () => {
-        handleNavigate(id);
-      };
+      path.addEventListener('click', () => {
+        navigate(`/buscar/gran-mendoza/mendoza-capital/${id}`);
+      });
     });
   };
 
@@ -170,58 +168,43 @@ export default function MendozaMap({ anunciosPorZona }) {
       <MapContainer>
         <object
           ref={objectRef}
-          data="/Mapa-general-2.svg"
+          data="/Mapa-capital.svg"
           type="image/svg+xml"
           onLoad={handleSvgLoad}
           style={{
             width: '100%',
-            maxWidth: '720px',
-            height: '520px',
+            maxWidth: '980px',
+            height: '600px',
             display: 'block',
           }}
         />
       </MapContainer>
 
-      {/* LISTADO POR DEPARTAMENTO */}
-      <div style={{ marginTop: '2.5rem' }}>
-        <h4 style={{ marginBottom: '1rem' }}>
-          Viviendas por departamento
-        </h4>
+      <ListTitle>Viviendas por barrio</ListTitle>
 
-        <ul
-          style={{
-            listStyle: 'none',
-            padding: 0,
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '8px 24px',
-          }}
-        >
-          {DEPARTAMENTOS.map((id) => {
-            const cantidad = anunciosPorZona?.[id] ?? 0;
+      <List>
+        {BARRIOS.map((id) => {
+          const cantidad = anunciosPorZona?.[id] ?? 0;
 
-            return (
-              <li
-                key={id}
-                onClick={() => handleNavigate(id)}
-                style={{
-                  cursor: 'pointer',
-                  color: '#f27a1a',
-                  fontSize: '14px',
-                }}
-              >
-                {formatZonaName(id)}{' '}
-                <span style={{ color: '#999' }}>
-                  ({cantidad} anuncios)
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+          return (
+            <ListItem
+              key={id}
+              onClick={() =>
+                navigate(
+                  `/buscar/gran-mendoza/mendoza-capital/${id}`
+                )
+              }
+            >
+              {formatBarrioName(id)}{' '}
+              <span style={{ color: '#999' }}>
+                ({cantidad} anuncios)
+              </span>
+            </ListItem>
+          );
+        })}
+      </List>
 
       <Tooltip ref={tooltipRef} />
     </Wrapper>
   );
 }
-

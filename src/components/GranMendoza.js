@@ -1,6 +1,5 @@
-import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
-import MendozaMap from '../components/MendozaMap';
+import GranMendozaMap from './GranMendozaMap';
 
 /* =========================
    STYLES
@@ -23,28 +22,15 @@ const Subtitle = styled.p`
 `;
 
 /* =========================
-   PAGE
+   COMPONENT
 ========================= */
 
-export default function Buscar() {
-  const location = useLocation();
-  const { operacion, tipo } = location.state || {};
-
+export default function GranMendoza() {
   return (
     <Wrapper>
-      <Title>Viviendas en Mendoza</Title>
-
-      {(operacion || tipo) && (
-        <Subtitle>
-          {operacion} · {tipo}
-        </Subtitle>
-      )}
-
-      <MendozaMap />
-
-      <Subtitle>Viviendas por departamento</Subtitle>
+      <Title>Gran Mendoza</Title>
+      <GranMendozaMap />
     </Wrapper>
   );
 }
-
 
