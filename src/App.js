@@ -9,6 +9,9 @@ import Layout from './components/Layout';
 import PrivateRoute from './components/PrivateRoute';
 import RoleRoute from './components/RoleRoute';
 
+import Verify from './pages/Verify';
+
+
 /* PAGES */
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -50,6 +53,9 @@ function App() {
               <Route path="/buscar/mendoza" element={<Buscar />} />
               <Route path="/buscar/:departamento" element={<Departamento />} />
               <Route path="/buscar/:departamento/:barrio" element={<Barrio />} />
+
+              <Route path="/verify" element={<Verify />} />
+
 
               {/* PRIVADAS */}
               <Route element={<PrivateRoute><Outlet /></PrivateRoute>}>

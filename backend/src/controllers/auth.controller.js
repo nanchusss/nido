@@ -104,6 +104,24 @@ export const login = async (req, res) => {
   }
 };
 
+export const me = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.sub).select('-passwordHash');
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    res.json({
+      id: user._id,
+      email: user.email,
+      name: user.name,
+      role: user.role || 'CLIENT',
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener usuario' });
+  }
+};
 
 
 

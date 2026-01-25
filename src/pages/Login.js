@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { useAuth } from '../context/AuthContext';
+import { apiRequest } from '../services/api';
 
 function Login() {
   const { login, loading, isAuthenticated } = useAuth();
@@ -11,6 +12,8 @@ function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [info, setInfo] = useState(null);
 
   const from = location.state?.from?.pathname || '/publicar';
 
@@ -21,21 +24,44 @@ function Login() {
   }, [isAuthenticated, navigate, from]);
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError(null);
+    e.preventDefault();
+    setError(null);
+    setInfo(null);
+    setNeedsVerification(false);
 
-  if (!email || !password) {
-    setError('Completá email y contraseña');
-    return;
-  }
+    if (!email || !password) {
+      setError('Completá email y contraseña');
+      return;
+    }
 
-  try {
-    await login({ email, password });
-  } catch (err) {
-    setError(err.message || 'Error al iniciar sesión');
-  }
-};
+    try {
+      await login({ email, password });
+    } catch (err) {
+      if (err.message === 'Cuenta no verificada') {
+        setNeedsVerification(true);
+        setError('Tu cuenta todavía no está verificada');
+      } else {
+        setError(err.message || 'Error al iniciar sesión');
+      }
+    }
+  };
 
+  const handleResendVerification = async () => {
+    setError(null);
+    setInfo(null);
+
+    try {
+      await apiRequest('/auth/resend-verification', {
+        method: 'POST',
+        body: { email },
+      });
+
+      setInfo('Te enviamos un nuevo correo de verificación');
+      setNeedsVerification(false);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
   if (loading) return <p>Cargando...</p>;
 
@@ -68,6 +94,13 @@ function Login() {
         </form>
 
         {error && <Error>{error}</Error>}
+        {info && <Info>{info}</Info>}
+
+        {needsVerification && (
+          <ResendButton onClick={handleResendVerification}>
+            Reenviar correo de verificación
+          </ResendButton>
+        )}
 
         <Divider />
 
@@ -145,6 +178,20 @@ const PrimaryButton = styled.button`
   }
 `;
 
+const ResendButton = styled.button`
+  width: 100%;
+  margin-top: 16px;
+  background: transparent;
+  border: none;
+  color: ${({ theme }) => theme.colors.primary};
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
 const Divider = styled.div`
   height: 1px;
   background: #eee;
@@ -170,6 +217,12 @@ const RegisterLink = styled(Link)`
 
 const Error = styled.p`
   color: #d32f2f;
+  margin-top: 16px;
+  text-align: center;
+`;
+
+const Info = styled.p`
+  color: #2e7d32;
   margin-top: 16px;
   text-align: center;
 `;
