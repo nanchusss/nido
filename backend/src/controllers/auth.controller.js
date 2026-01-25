@@ -1,11 +1,8 @@
-import bcrypt from 'bcryptjs';
-import User from '../../models/User.js';
-
 export const register = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, consentAccepted } = req.body;
 
-    if (!email || !password) {
+    if (!email || !password || consentAccepted !== true) {
       return res.status(400).json({ message: 'Datos incompletos' });
     }
 
@@ -14,11 +11,12 @@ export const register = async (req, res) => {
       return res.status(409).json({ message: 'Email ya registrado' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password, 10);
 
     await User.create({
       email,
-      password: hashedPassword, // ✅ COINCIDE CON EL MODELO
+      passwordHash,      // ✅ COINCIDE CON EL MODELO
+      consentAccepted,   // ✅ COINCIDE CON EL MODELO
     });
 
     res.status(201).json({
@@ -26,13 +24,13 @@ export const register = async (req, res) => {
     });
 
   } catch (error) {
-  console.error('REGISTER ERROR 👉', error);
-  res.status(500).json({
-    message: 'Error en el registro',
-    error: error.message,
-  });
-}
-
+    console.error('REGISTER ERROR:', error);
+    res.status(500).json({
+      message: 'Error en el registro',
+      error: error.message,
+    });
+  }
 };
+
 
 
