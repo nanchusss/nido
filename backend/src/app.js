@@ -6,6 +6,11 @@ import authRoutes from './routes/auth.routes.js';
 import projectRoutes from '../src/controllers/project.routes.js';
 import { connectDB } from './config/db.js';
 
+import resendVerificationRoutes from './routes/resendVerification.routes.js';
+
+
+
+
 dotenv.config();
 
 const app = express();
@@ -15,6 +20,8 @@ connectDB();
 
 app.use(cors());
 app.use(express.json());
+
+app.use('/api/auth', resendVerificationRoutes);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
