@@ -8,7 +8,7 @@ function Verify() {
   const [searchParams] = useSearchParams();
   const { loginWithToken } = useAuth();
 
-  const [status, setStatus] = useState('loading');
+  const [status, setStatus] = useState('loading'); // loading | success | error
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -24,6 +24,11 @@ function Verify() {
       try {
         const data = await apiRequest(`/auth/verify?token=${token}`);
 
+        // 🔴 VALIDACIÓN CLAVE (ESTO FALTABA)
+        if (!data || !data.token) {
+          throw new Error('La verificación no devolvió un token válido');
+        }
+
         // 🔐 auto-login
         await loginWithToken(data.token);
 
@@ -36,7 +41,9 @@ function Verify() {
 
       } catch (error) {
         setStatus('error');
-        setMessage(error.message);
+        setMessage(
+          error?.message || 'Ocurrió un error al verificar la cuenta'
+        );
       }
     };
 
@@ -54,7 +61,8 @@ function Verify() {
             : 'Verificando'}
         </Title>
 
-        <Message error={status === 'error'}>
+        {/* 🔧 FIX styled-components */}
+        <Message $error={status === 'error'}>
           {status === 'loading' ? 'Verificando cuenta…' : message}
         </Message>
       </Card>
@@ -64,35 +72,29 @@ function Verify() {
 
 export default Verify;
 
-/* ================= STYLES ================= */
+/* =========================
+   Styled Components
+========================= */
 
 const Page = styled.div`
   min-height: 100vh;
-  padding-top: 220px;
   display: flex;
+  align-items: center;
   justify-content: center;
-  background: #f6f6f6;
 `;
 
 const Card = styled.div`
-  background: white;
-  padding: 48px;
-  width: 100%;
-  height: 50%;
-  max-width: 420px;
-  border-radius: 20px;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.08);
+  background: #fff;
+  padding: 40px;
+  border-radius: 16px;
   text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
 `;
 
 const Title = styled.h2`
-  font-size: 26px;
   margin-bottom: 16px;
 `;
 
 const Message = styled.p`
-  font-size: 15px;
-  line-height: 1.5;
-  color: ${({ error }) => (error ? '#d32f2f' : '#444')};
-  margin-bottom: 24px;
+  color: ${({ $error }) => ($error ? '#d32f2f' : '#555')};
 `;
