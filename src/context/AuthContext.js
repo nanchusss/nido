@@ -5,51 +5,70 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const storedToken = localStorage.getItem('token');
+  const isAuthenticated = !!user;
 
-    if (storedToken) {
-      setToken(storedToken);
-      setUser({}); // usuario placeholder
+  // 🔄 Al cargar la app: validar token y traer user real
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      setLoading(false);
+      return;
     }
 
-    setLoading(false);
+    const loadUser = async () => {
+      try {
+        const data = await apiRequest('/auth/me');
+        setUser(data);
+      } catch (err) {
+        // token inválido / expirado
+        localStorage.removeItem('token');
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUser();
   }, []);
 
-  const login = async (credentials) => {
-    try {
-      const data = await apiRequest('/auth/login', {
-        method: 'POST',
-        body: credentials,
-      });
+  // 🔐 Login normal
+  const login = async ({ email, password }) => {
+    const data = await apiRequest('/auth/login', {
+      method: 'POST',
+      body: { email, password },
+    });
 
-      setToken(data.token);
-      setUser({}); // backend no devuelve user aún
+    localStorage.setItem('token', data.token);
 
-      localStorage.setItem('token', data.token);
-    } catch (error) {
-      throw error;
-    }
+    const me = await apiRequest('/auth/me');
+    setUser(me);
   };
 
+  // 🔐 Login desde verify (auto-login)
+  const loginWithToken = async (token) => {
+    localStorage.setItem('token', token);
+    const me = await apiRequest('/auth/me');
+    setUser(me);
+  };
+
+  // 🚪 Logout
   const logout = () => {
-    setToken(null);
-    setUser(null);
     localStorage.removeItem('token');
+    setUser(null);
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        token,
-        isAuthenticated: !!token,
-        login,
-        logout,
+        isAuthenticated,
         loading,
+        login,
+        loginWithToken,
+        logout,
       }}
     >
       {children}
@@ -60,4 +79,3 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   return useContext(AuthContext);
 }
-

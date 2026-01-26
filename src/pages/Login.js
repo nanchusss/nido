@@ -120,7 +120,7 @@ export default Login;
 /* ================= STYLES ================= */
 
 const Page = styled.div`
-  min-height: 810vh;
+  min-height: 100vh;
   padding-top: 220px;
   display: flex;
   justify-content: center;
