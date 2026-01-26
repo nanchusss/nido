@@ -1,58 +1,62 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { apiRequest } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 function Verify() {
   const [searchParams] = useSearchParams();
+  const { loginWithToken } = useAuth();
+
   const [status, setStatus] = useState('loading');
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-  const token = searchParams.get('token');
+    const token = searchParams.get('token');
 
-  if (!token) {
-    setStatus('error');
-    setMessage('Token de verificación inválido');
-    return;
-  }
-
-  const verifyAccount = async () => {
-    try {
-      const data = await apiRequest(`/auth/verify?token=${token}`);
-      setStatus('success');
-      setMessage(data.message || 'Cuenta verificada correctamente');
-
-      setTimeout(() => {
-        window.location.href = '/login';
-      }, 2500);
-
-    } catch (error) {
+    if (!token) {
       setStatus('error');
-      setMessage(error.message);
+      setMessage('Token de verificación inválido');
+      return;
     }
-  };
 
-  verifyAccount();
-}, [searchParams]);
+    const verifyAccount = async () => {
+      try {
+        const data = await apiRequest(`/auth/verify?token=${token}`);
 
+        // 🔐 auto-login
+        await loginWithToken(data.token);
+
+        setStatus('success');
+        setMessage('Cuenta verificada. Redirigiendo…');
+
+        setTimeout(() => {
+          window.location.href = '/client';
+        }, 1500);
+
+      } catch (error) {
+        setStatus('error');
+        setMessage(error.message);
+      }
+    };
+
+    verifyAccount();
+  }, [searchParams, loginWithToken]);
 
   return (
     <Page>
       <Card>
         <Title>
-          {status === 'success' ? 'Cuenta verificada' : 'Error'}
+          {status === 'success'
+            ? 'Cuenta verificada'
+            : status === 'error'
+            ? 'Error'
+            : 'Verificando'}
         </Title>
 
         <Message error={status === 'error'}>
           {status === 'loading' ? 'Verificando cuenta…' : message}
         </Message>
-
-        {status === 'success' && (
-          <LoginLink to="/login">
-            Ir a iniciar sesión
-          </LoginLink>
-        )}
       </Card>
     </Page>
   );
@@ -91,16 +95,4 @@ const Message = styled.p`
   line-height: 1.5;
   color: ${({ error }) => (error ? '#d32f2f' : '#444')};
   margin-bottom: 24px;
-`;
-
-const LoginLink = styled(Link)`
-  display: inline-block;
-  margin-top: 12px;
-  font-weight: 600;
-  color: ${({ theme }) => theme.colors.primary};
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
 `;

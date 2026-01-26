@@ -10,6 +10,8 @@ import {
 } from 'react-icons/fi';
 
 import logo from '../IMAGES/nidologo.png';
+import { useAuth } from '../context/AuthContext';
+
 
 /* ================= WRAPPER ================= */
 
@@ -147,6 +149,8 @@ const PublishBtn = styled(Link)`
 
 export default function Header() {
   const [openMenu, setOpenMenu] = useState(null);
+  const { isAuthenticated, logout } = useAuth();
+
 
   return (
     <HeaderWrapper>
@@ -171,7 +175,10 @@ export default function Header() {
           <IconBtn><FiHeart /></IconBtn>
           <IconBtn><FiSearch /></IconBtn>
 
-          <PublishBtn to="/publicar">Publicar</PublishBtn>
+          <PublishBtn to={isAuthenticated ? '/publicar' : '/login'}>
+  Publicar
+</PublishBtn>
+
           <IconBtn><FiMenu /></IconBtn>
         </Right>
       </Inner>

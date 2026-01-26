@@ -35,7 +35,6 @@ export const register = async (req, res) => {
       isConfirmed: false,
     });
 
-    // 🔒 Enviar email SOLO si SMTP está configurado
     if (
       process.env.SMTP_HOST &&
       process.env.SMTP_USER &&
@@ -104,6 +103,50 @@ export const login = async (req, res) => {
   }
 };
 
+/* =========================
+   VERIFY (AUTO LOGIN)
+========================= */
+export const verify = async (req, res) => {
+  try {
+    const { token } = req.query;
+
+    if (!token) {
+      return res.status(400).json({ message: 'Token inválido' });
+    }
+
+    const user = await User.findOne({
+      confirmationToken: token,
+      confirmationTokenExpires: { $gt: new Date() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Token inválido o expirado' });
+    }
+
+    user.isConfirmed = true;
+    user.confirmationToken = undefined;
+    user.confirmationTokenExpires = undefined;
+    await user.save();
+
+    const jwtToken = jwt.sign(
+      { sub: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      message: 'Cuenta verificada correctamente',
+      token: jwtToken,
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Error al verificar cuenta' });
+  }
+};
+
+/* =========================
+   ME
+========================= */
 export const me = async (req, res) => {
   try {
     const user = await User.findById(req.user.sub).select('-passwordHash');
@@ -122,6 +165,5 @@ export const me = async (req, res) => {
     res.status(500).json({ message: 'Error al obtener usuario' });
   }
 };
-
 
 
