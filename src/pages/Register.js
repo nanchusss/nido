@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
+import { apiRequest } from '../services/api';
 
 function Register() {
   const [form, setForm] = useState({
@@ -48,31 +49,20 @@ function Register() {
 
     // 🔒 REGISTRO MOCK + ENVÍO DE MAIL (SIMULADO)
     try {
-  const res = await fetch('http://localhost:5050/api/auth/register', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      email: form.email,
-      password: form.password,
-      consentAccepted: form.consent,
-      name: '',
-    }),
-  });
+  await apiRequest('/auth/register', {
+        method: 'POST',
+        body: {
+          email: form.email,
+          password: form.password,
+          consentAccepted: form.consent,
+          name: '',
+        },
+      });
 
-  const data = await res.json();
-
-  if (!res.ok) {
-    setError(data.message || 'Error en el registro');
-    return;
-  }
-
-  setSubmitted(true);
-
-} catch (err) {
-  setError('No se pudo conectar con el servidor');
-}
+      setSubmitted(true);
+    } catch (err) {
+      setError(err.message || 'No se pudo conectar con el servidor');
+    }
 
   };
 

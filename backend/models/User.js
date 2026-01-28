@@ -14,6 +14,19 @@ const userSchema = new mongoose.Schema({
     required: true,
   },
 
+    name: {
+    type: String,
+  },
+
+  role: {
+    type: String,
+    default: 'CLIENT',
+  },
+
+confirmationTokenExpires: {
+    type: Date,
+  },
+
   consentAccepted: {
     type: Boolean,
     required: true,
