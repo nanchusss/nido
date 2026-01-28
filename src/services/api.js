@@ -1,7 +1,9 @@
 const API_URL = 'https://nido-backend-9k6z.onrender.com/api';
 
 export async function apiRequest(endpoint, options = {}) {
-  const { method = 'GET', body, token } = options;
+  const { method = 'GET', body } = options;
+
+  const token = localStorage.getItem('token');
 
   const headers = {
     'Content-Type': 'application/json',

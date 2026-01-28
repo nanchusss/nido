@@ -8,7 +8,7 @@ function Verify() {
   const [searchParams] = useSearchParams();
   const { loginWithToken } = useAuth();
 
-  const [status, setStatus] = useState('loading'); // loading | success | error
+  const [status, setStatus] = useState('loading');
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -24,12 +24,6 @@ function Verify() {
       try {
         const data = await apiRequest(`/auth/verify?token=${token}`);
 
-        // 🔴 VALIDACIÓN CLAVE (ESTO FALTABA)
-        if (!data || !data.token) {
-          throw new Error('La verificación no devolvió un token válido');
-        }
-
-        // 🔐 auto-login
         await loginWithToken(data.token);
 
         setStatus('success');
@@ -41,9 +35,7 @@ function Verify() {
 
       } catch (error) {
         setStatus('error');
-        setMessage(
-          error?.message || 'Ocurrió un error al verificar la cuenta'
-        );
+        setMessage(error.message || 'Error al verificar cuenta');
       }
     };
 
@@ -61,7 +53,6 @@ function Verify() {
             : 'Verificando'}
         </Title>
 
-        {/* 🔧 FIX styled-components */}
         <Message $error={status === 'error'}>
           {status === 'loading' ? 'Verificando cuenta…' : message}
         </Message>
@@ -72,9 +63,7 @@ function Verify() {
 
 export default Verify;
 
-/* =========================
-   Styled Components
-========================= */
+/* ===== styled ===== */
 
 const Page = styled.div`
   min-height: 100vh;
