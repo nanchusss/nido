@@ -3,8 +3,10 @@ import { connectDB } from "./config/db.js";
 
 connectDB();
 
-app.listen(5050, () => {
+a
+const PORT = process.env.PORT || 5050;
+app.listen(PORT, () => {
   console.log("🧨 ENV COMPLETO:", process.env);
 
-  console.log("Server corriendo en puerto 5050");
+  console.log(`Server corriendo en puerto ${PORT}`);
 });

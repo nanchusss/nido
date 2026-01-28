@@ -1,7 +1,7 @@
-import { Router } from 'express';
+import express from 'express';
 import { resendVerification } from '../controllers/resendVerification.controller.js';
 
-const router = Router();
+const router = express.Router();
 
 router.post('/resend-verification', resendVerification);
 

@@ -9,7 +9,7 @@ export function AuthProvider({ children }) {
 
   const isAuthenticated = !!user;
 
-  // 🔄 Al cargar la app: validar token y traer user real
+  // 🔄 Validar sesión al cargar la app
   useEffect(() => {
     const token = localStorage.getItem('token');
 
@@ -20,10 +20,9 @@ export function AuthProvider({ children }) {
 
     const loadUser = async () => {
       try {
-        const data = await apiRequest('/auth/me');
-        setUser(data);
+        const me = await apiRequest('/auth/me');
+        setUser(me);
       } catch (err) {
-        // token inválido / expirado
         localStorage.removeItem('token');
         setUser(null);
       } finally {
@@ -47,7 +46,7 @@ export function AuthProvider({ children }) {
     setUser(me);
   };
 
-  // 🔐 Login desde verify (auto-login)
+  // 🔐 Login con token (verify)
   const loginWithToken = async (token) => {
     localStorage.setItem('token', token);
     const me = await apiRequest('/auth/me');
