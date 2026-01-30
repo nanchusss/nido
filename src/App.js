@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
 
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from '../src/auth/AuthContext';
 import { theme } from './styles/theme';
 import { GlobalStyle } from './styles/GlobalStyle';
 

@@ -10,7 +10,7 @@ import {
 } from 'react-icons/fi';
 
 import logo from '../IMAGES/nidologo.png';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../auth/AuthContext';
 
 
 /* ================= WRAPPER ================= */
@@ -149,7 +149,12 @@ const PublishBtn = styled(Link)`
 
 export default function Header() {
   const [openMenu, setOpenMenu] = useState(null);
-  const { isAuthenticated, logout } = useAuth();
+  const auth = useAuth();
+
+if (!auth) return null;
+
+const { isAuthenticated, user, logout } = auth;
+
 
 
   return (
