@@ -153,6 +153,7 @@ export default function GranMendozaMap({ anunciosPorZona }) {
           data="/Mapa-gran-mendoza.svg"
           type="image/svg+xml"
           onLoad={handleSvgLoad}
+           aria-label="Mapa de la ciudad de Mendoza"
           style={{
             width: '100%',
             maxWidth: '980px',

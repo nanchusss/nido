@@ -16,10 +16,7 @@ const Title = styled.h1`
   margin-bottom: 48px;
 `;
 
-const Subtitle = styled.p`
-  color: #6a6a6a;
-  margin-bottom: 48px;
-`;
+
 
 /* =========================
    COMPONENT

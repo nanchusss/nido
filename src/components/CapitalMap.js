@@ -171,11 +171,13 @@ export default function CapitalMap({ anunciosPorZona }) {
           data="/Mapa-capital.svg"
           type="image/svg+xml"
           onLoad={handleSvgLoad}
+           aria-label="Mapa de la ciudad de Mendoza"
           style={{
             width: '100%',
             maxWidth: '980px',
             height: '600px',
             display: 'block',
+            
           }}
         />
       </MapContainer>

@@ -153,7 +153,7 @@ export default function Header() {
 
 if (!auth) return null;
 
-const { isAuthenticated, user, logout } = auth;
+const { isAuthenticated} = auth;
 
 
 
