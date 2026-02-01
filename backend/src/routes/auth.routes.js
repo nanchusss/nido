@@ -1,17 +1,16 @@
-import express from 'express';
+import express from 'express'
 import {
   register,
   login,
-  verify,
-  me
-} from '../controllers/auth.controller.js';
-import { authRequired } from '../../middlewares/auth.middleware.js';
+  me,
+  verify
+} from '../controllers/auth.controller.js'
 
-const router = express.Router();
+const router = express.Router()
 
-router.post('/register', register);
-router.post('/login', login);
-router.get('/verify', verify);        // ✅ ESTA ES LA CLAVE
-router.get('/me', authRequired, me);
+router.post('/register', register)
+router.post('/login', login)
+router.get('/me', me)
+router.get('/verify/:token', verify)
 
-export default router;
+export default router

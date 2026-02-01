@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import styled from 'styled-components';
-import { apiRequest } from '../services/api';
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import styled from 'styled-components'
+import { apiRequest } from '../services/api'
 
 function Register() {
   const [form, setForm] = useState({
@@ -9,90 +9,93 @@ function Register() {
     password: '',
     confirmPassword: '',
     consent: false
-  });
+  })
 
-  const [error, setError] = useState(null);
-  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState(null)
+  const [submitted, setSubmitted] = useState(false)
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type, checked } = e.target
 
     setForm({
       ...form,
       [name]: type === 'checkbox' ? checked : value
-    });
-  };
+    })
+  }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
+    e.preventDefault()
+    setError(null)
 
     if (!form.email || !form.password || !form.confirmPassword) {
-      setError('Completá todos los campos');
-      return;
+      setError('Completá todos los campos')
+      return
     }
 
     if (form.password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
-      return;
+      setError('La contraseña debe tener al menos 6 caracteres')
+      return
     }
 
     if (form.password !== form.confirmPassword) {
-      setError('Las contraseñas no coinciden');
-      return;
+      setError('Las contraseñas no coinciden')
+      return
     }
 
     if (!form.consent) {
-      setError('Debés aceptar el uso de datos para continuar');
-      return;
+      setError('Debés aceptar el uso de datos para continuar')
+      return
     }
 
-    // 🔒 REGISTRO MOCK + ENVÍO DE MAIL (SIMULADO)
     try {
-  await apiRequest('/auth/register', {
+      console.log('Enviando registro para:', form.email)
+      console.log('si se registra:', form.consent)
+      await apiRequest('/api/auth/register', {
         method: 'POST',
         body: {
           email: form.email,
           password: form.password,
           consentAccepted: form.consent,
-          name: '',
-        },
-      });
+          name: ''
+        }
+      })
 
-      setSubmitted(true);
+      setSubmitted(true)
     } catch (err) {
-      setError(err.message || 'No se pudo conectar con el servidor');
+      console.error('Registro error:', err)
+      setError(err.message || 'No se pudo conectar con el servidor')
     }
-
-  };
+  }
 
   if (submitted) {
     return (
       <Page>
         <Card>
           <Title>Confirmá tu correo</Title>
+
           <Subtitle>
-            Te enviamos un email a <strong>{form.email}</strong><br />
+            Te enviamos un email a <strong>{form.email}</strong>
+            <br />
             para confirmar tu cuenta.
           </Subtitle>
 
           <Info>
             Revisá tu bandeja de entrada o spam.
+            <br />
             Una vez confirmado, vas a poder publicar propiedades.
           </Info>
 
-          <BackLink to="/login">
-            Volver al login
-          </BackLink>
+          <BackLink to="/login">Volver al login</BackLink>
         </Card>
       </Page>
-    );
+    )
   }
 
   return (
     <Page>
       <Card>
         <Title>Crear cuenta</Title>
+
         <Subtitle>
           Registrate para publicar y gestionar tus propiedades
         </Subtitle>
@@ -136,10 +139,7 @@ function Register() {
             </label>
           </Consent>
 
-          <PrimaryButton
-            type="submit"
-            disabled={!form.consent}
-          >
+          <PrimaryButton type="submit" disabled={!form.consent}>
             Crear cuenta
           </PrimaryButton>
         </form>
@@ -154,10 +154,11 @@ function Register() {
         </LoginText>
       </Card>
     </Page>
-  );
+  )
 }
 
-export default Register;
+export default Register
+
 
 /* ================= STYLES ================= */
 
