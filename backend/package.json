@@ -3,21 +3,28 @@
   "version": "1.0.0",
   "description": "Backend API para el proyecto NIDO",
   "type": "module",
-  
-  "main": "src/server.js",  "scripts": {
-     "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "test": "jest"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "form-data": "^4.0.5",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.1.1",
-    "nodemailer": "^7.0.12"
+    "multer": "^2.0.2",
+    "nodemailer": "^7.0.12",
+    "openai": "^6.18.0",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
-    "nodemon": "^3.0.3"
+    "jest": "^30.2.0",
+    "nodemon": "^3.0.3",
+    "supertest": "^7.2.2"
   }
 }
