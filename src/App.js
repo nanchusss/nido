@@ -26,8 +26,13 @@ import Capital from './components/Capital';
 import Barrio from './components/Barrio';
 
 import ClientDashboard from './pages/ClientDashboard';
-import NewProperty from './pages/NewProperty';
+
+
+
+import PublishProperty from './pages/PublishProperty';
 import EditProperty from './pages/EditProperty';
+
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -90,7 +95,7 @@ function App() {
                   path="/publicar"
                   element={
                     <RoleRoute allowedRoles={['CLIENT']}>
-                      <NewProperty />
+                      <PublishProperty />
                     </RoleRoute>
                   }
                 />

@@ -6,12 +6,13 @@ import {
   FiBell,
   FiSearch,
   FiHeart,
-  FiMenu
+  FiMenu,
+  FiUser,
+  FiLogOut
 } from 'react-icons/fi';
 
 import logo from '../IMAGES/nidologo.png';
 import { useAuth } from '../auth/AuthContext';
-
 
 /* ================= WRAPPER ================= */
 
@@ -145,17 +146,70 @@ const PublishBtn = styled(Link)`
   text-decoration: none;
 `;
 
+/* ================= USER MENU ================= */
+
+const UserWrapper = styled.div`
+  position: relative;
+`;
+
+const UserMenu = styled.div`
+  position: absolute;
+  top: 44px;
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  min-width: 180px;
+  padding: 12px;
+  box-shadow: 0 16px 32px rgba(0,0,0,0.12);
+  z-index: 2000;
+`;
+
+const UserName = styled.div`
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 14px;
+`;
+
+const UserLink = styled(Link)`
+  display: block;
+  font-size: 14px;
+  color: #1e1e1e;
+  padding: 6px 0;
+  text-decoration: none;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
+const LogoutBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  width: 100%;
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #c0392b;
+  cursor: pointer;
+  padding: 6px 0;
+
+  &:hover {
+    opacity: 0.8;
+  }
+`;
+
 /* ================= COMPONENT ================= */
 
 export default function Header() {
   const [openMenu, setOpenMenu] = useState(null);
+  const [openUserMenu, setOpenUserMenu] = useState(false);
+
   const auth = useAuth();
+  if (!auth) return null;
 
-if (!auth) return null;
-
-const { isAuthenticated} = auth;
-
-
+  const { isAuthenticated, user, logout } = auth;
 
   return (
     <HeaderWrapper>
@@ -181,8 +235,36 @@ const { isAuthenticated} = auth;
           <IconBtn><FiSearch /></IconBtn>
 
           <PublishBtn to={isAuthenticated ? '/publicar' : '/login'}>
-  Publicar
-</PublishBtn>
+            Publicar
+          </PublishBtn>
+
+          {isAuthenticated && (
+            <UserWrapper
+              onMouseEnter={() => setOpenUserMenu(true)}
+              onMouseLeave={() => setOpenUserMenu(false)}
+            >
+              <IconBtn>
+                <FiUser />
+              </IconBtn>
+
+              {openUserMenu && (
+                <UserMenu>
+                  <UserName>
+                    {user?.name || 'Mi perfil'}
+                  </UserName>
+
+                  <UserLink to="/perfil">
+                    Ver perfil
+                  </UserLink>
+
+                  <LogoutBtn onClick={logout}>
+                    <FiLogOut />
+                    Cerrar sesión
+                  </LogoutBtn>
+                </UserMenu>
+              )}
+            </UserWrapper>
+          )}
 
           <IconBtn><FiMenu /></IconBtn>
         </Right>
