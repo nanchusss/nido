@@ -1,5 +1,3 @@
-
-
 import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
@@ -14,7 +12,7 @@ const userSchema = new mongoose.Schema({
     required: true,
   },
 
-    name: {
+  name: {
     type: String,
   },
 
@@ -23,17 +21,18 @@ const userSchema = new mongoose.Schema({
     default: 'CLIENT',
   },
 
-confirmationTokenExpires: {
-    type: Date,
-  },
-
   consentAccepted: {
     type: Boolean,
     required: true,
   },
 
-  confirmationToken: {
+  // 🔹 Verificación por código (nuevo)
+  verificationCode: {
     type: String,
+  },
+
+  verificationCodeExpires: {
+    type: Date,
   },
 
   isConfirmed: {

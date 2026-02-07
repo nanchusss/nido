@@ -27,7 +27,7 @@ export const resendVerification = async (req, res) => {
     user.confirmationTokenExpires = confirmationTokenExpires;
     await user.save();
 
-    const confirmUrl = `${process.env.FRONT_URL}/verify?token=${confirmationToken}`;
+   const confirmUrl = `${process.env.FRONT_URL}/verify/${confirmationToken}`;
 
     await sendEmail({
       to: email,

@@ -1,25 +1,26 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 import { apiRequest } from '../services/api'
 
 function Register() {
+  const navigate = useNavigate()
+
   const [form, setForm] = useState({
     email: '',
     password: '',
     confirmPassword: '',
-    consent: false
+    consent: false,
   })
 
   const [error, setError] = useState(null)
-  const [submitted, setSubmitted] = useState(false)
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
 
     setForm({
       ...form,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : value,
     })
   }
 
@@ -48,47 +49,25 @@ function Register() {
     }
 
     try {
-      console.log('Enviando registro para:', form.email)
-      console.log('si se registra:', form.consent)
       await apiRequest('/api/auth/register', {
         method: 'POST',
         body: {
           email: form.email,
           password: form.password,
           consentAccepted: form.consent,
-          name: ''
-        }
+          name: '',
+        },
       })
 
-      setSubmitted(true)
+      // 🔥 CLAVE: guardar email para verify
+      localStorage.setItem('verifyEmail', form.email)
+
+      // ir a verificación
+      navigate('/verify')
     } catch (err) {
       console.error('Registro error:', err)
       setError(err.message || 'No se pudo conectar con el servidor')
     }
-  }
-
-  if (submitted) {
-    return (
-      <Page>
-        <Card>
-          <Title>Confirmá tu correo</Title>
-
-          <Subtitle>
-            Te enviamos un email a <strong>{form.email}</strong>
-            <br />
-            para confirmar tu cuenta.
-          </Subtitle>
-
-          <Info>
-            Revisá tu bandeja de entrada o spam.
-            <br />
-            Una vez confirmado, vas a poder publicar propiedades.
-          </Info>
-
-          <BackLink to="/login">Volver al login</BackLink>
-        </Card>
-      </Page>
-    )
   }
 
   return (
@@ -133,9 +112,7 @@ function Register() {
               onChange={handleChange}
             />
             <label>
-              Acepto el{' '}
-              <Link to="/terminos">uso de mis datos</Link>{' '}
-              según la política de privacidad
+              Acepto el <Link to="/terminos">uso de mis datos</Link> según la política de privacidad
             </label>
           </Consent>
 

@@ -1,4 +1,5 @@
-import crypto from 'crypto'
+import jwt from 'jsonwebtoken'
+import bcrypt from 'bcryptjs'
 import User from '../../models/User.js'
 import { sendEmail } from '../../utils/sendEmail.js'
 
@@ -7,93 +8,138 @@ import { sendEmail } from '../../utils/sendEmail.js'
 // =====================
 export const register = async (req, res) => {
   try {
-    console.log('🟢 REGISTER HIT')
-    console.log('BODY:', req.body)
-
     const { email, password, consentAccepted, name } = req.body
 
-    const confirmationToken = crypto.randomBytes(32).toString('hex')
+    const verificationCode = Math.floor(10000 + Math.random() * 90000).toString()
+    const verificationCodeExpires = new Date(Date.now() + 1000 * 60 * 10)
 
     const user = new User({
       email,
-      passwordHash: password, // luego se hashea
+      passwordHash: await bcrypt.hash(password, 10),
       name: name || '',
       consentAccepted,
-      confirmationToken,
-      confirmationTokenExpires: new Date(Date.now() + 1000 * 60 * 60 * 24),
+      verificationCode,
+      verificationCodeExpires,
       isConfirmed: false,
     })
 
     await user.save()
-    console.log('✅ USUARIO GUARDADO EN MONGO')
-
-    const confirmUrl = `${process.env.FRONT_URL}/verify/${confirmationToken}`
 
     await sendEmail({
       to: email,
       subject: 'Confirmá tu cuenta en NIDO',
       html: `
         <h2>Confirmá tu correo</h2>
-        <p>Hacé click en el siguiente link:</p>
-        <a href="${confirmUrl}">${confirmUrl}</a>
+        <h1>${verificationCode}</h1>
+        <p>Este código vence en 10 minutos.</p>
       `,
     })
 
-    console.log('📧 EMAIL ENVIADO')
-
-    return res.json({ success: true })
+    res.json({ success: true })
   } catch (error) {
-    console.error('❌ REGISTER ERROR:', error)
-    return res.status(500).json({ error: 'Register failed' })
+    res.status(500).json({ error: 'Register failed' })
   }
 }
 
 // =====================
-// LOGIN (MOCK)
+// LOGIN
 // =====================
 export const login = async (req, res) => {
-  return res.status(200).json({
-    message: 'Login OK (mock)',
-  })
-}
-
-// =====================
-// ME
-// =====================
-export const me = async (req, res) => {
-  return res.status(200).json({
-    user: {
-      id: 'mock-id',
-      email: 'mock@email.com',
-      role: 'CLIENT',
-    },
-  })
-}
-
-// =====================
-// VERIFY EMAIL
-// =====================
-export const verify = async (req, res) => {
   try {
-    const { token } = req.params
+    const { email, password } = req.body
+
+    const user = await User.findOne({ email })
+    if (!user) {
+      return res.status(401).json({ message: 'Credenciales inválidas' })
+    }
+
+    if (!user.isConfirmed) {
+      return res.status(403).json({ message: 'Cuenta no verificada' })
+    }
+
+    const validPassword = await bcrypt.compare(password, user.passwordHash)
+    if (!validPassword) {
+      return res.status(401).json({ message: 'Credenciales inválidas' })
+    }
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    )
+
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+      },
+    })
+  } catch (error) {
+    res.status(500).json({ message: 'Login failed' })
+  }
+}
+
+// =====================
+// VERIFY CODE
+// =====================
+export const verifyCode = async (req, res) => {
+  try {
+    const { email, code } = req.body
 
     const user = await User.findOne({
-      confirmationToken: token,
-      confirmationTokenExpires: { $gt: Date.now() },
+      email,
+      verificationCode: code.toString().trim(),
+      verificationCodeExpires: { $gt: new Date() },
     })
 
     if (!user) {
-      return res.status(400).json({ message: 'Token inválido o expirado' })
+      return res.status(400).json({ message: 'Código inválido o expirado' })
     }
 
     user.isConfirmed = true
-    user.confirmationToken = undefined
-    user.confirmationTokenExpires = undefined
-
+    user.verificationCode = null
+    user.verificationCodeExpires = null
     await user.save()
 
-    return res.json({ message: 'Cuenta confirmada correctamente' })
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    )
+
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+      },
+    })
   } catch (error) {
-    return res.status(500).json({ message: 'Error del servidor' })
+    res.status(500).json({ message: 'Verify failed' })
+  }
+}
+// =====================
+// ME (JWT)
+// =====================
+export const me = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-passwordHash')
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' })
+    }
+
+    res.json({
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+      },
+    })
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener usuario' })
   }
 }

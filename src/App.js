@@ -45,6 +45,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/verify" element={<Verify />} />
+              <Route path="/verify/:token" element={<Verify />} />
 
               <Route path="/properties" element={<Properties />} />
               <Route path="/properties/:id" element={<PropertyDetail />} />
