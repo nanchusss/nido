@@ -1,124 +1,124 @@
 import express from 'express';
 import multer from 'multer';
 import sharp from 'sharp';
+import OpenAI from 'openai';
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
-const SDXL_SIZE = 1024;
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 router.post(
   '/virtual-staging/preview',
   upload.single('image'),
   async (req, res) => {
     try {
-      console.log('REQ BODY 👉', req.body);
-      console.log('REQ FILE 👉', req.file);
-
       const { style = 'Mediterranean contemporary' } = req.body;
 
       if (!req.file) {
         return res.status(400).json({ error: 'No se recibió imagen' });
       }
 
-      if (!process.env.STABILITY_API_KEY) {
+      if (!process.env.OPENAI_API_KEY) {
         return res.status(500).json({ error: 'API key no configurada' });
       }
 
-      /* 🖼️ 1. Forzar tamaño SDXL (válido y estable) */
-      const resizedBuffer = await sharp(req.file.buffer)
-        .resize(SDXL_SIZE, SDXL_SIZE, {
-          fit: 'cover',
-          position: 'centre',
-        })
+      /* ─────────────────────────────────────
+         🖼️ 1. Preparar imagen (más ligera)
+      ───────────────────────────────────── */
+      const imageBuffer = await sharp(req.file.buffer)
+        .resize(768, 768, { fit: 'inside' }) // 🔑 CLAVE
         .png()
         .toBuffer();
 
-      /* 📦 2. FormData */
-      const formData = new FormData();
-      const imageBlob = new Blob([resizedBuffer], { type: 'image/png' });
+      const imageBase64 = imageBuffer.toString('base64');
 
-      formData.append('init_image', imageBlob, 'image.png');
-
-      /* ✅ PROMPT PRINCIPAL — REDECORAR, NO RECONSTRUIR */
-      formData.append(
-        'text_prompts[0][text]',
-        `
-Redecorate the existing real interior shown in the photo.
-This is the SAME room and the SAME photo.
-
-Preserve the original architecture exactly:
-walls, windows, doors, ceiling height, floor layout and proportions.
-Do NOT change room structure, geometry or camera angle.
-
-Only change furniture, decor, colors, materials, textiles and lighting fixtures.
-Interior redesign only, no remodeling.
-
-Style: ${style}.
-Natural materials (wood, linen, ceramic, stone).
-Soft Mediterranean light, realistic shadows.
-Photorealistic interior photography.
-`
-      );
-      formData.append('text_prompts[0][weight]', '1');
-
-      /* 🚫 PROMPT NEGATIVO — EVITAR INVENCIONES */
-      formData.append(
-        'text_prompts[1][text]',
-        `
-new room, different architecture, altered layout,
-extra windows, different ceiling, changed walls,
-new perspective, wide angle, different camera,
-remodeling, reconstruction, open plan,
-3d render, illustration, cartoon, painting,
-fantasy, surreal, distorted furniture
-`
-      );
-      formData.append('text_prompts[1][weight]', '-1');
-
-      /* ⚙️ PARÁMETROS FINOS PARA IMAGE-TO-IMAGE */
-      formData.append('image_strength', '0.25'); // 🔑 no inventa
-      formData.append('cfg_scale', '6.5');        // sigue el texto sin romper la foto
-      formData.append('samples', '1');
-
-      /* 🚀 STABILITY SDXL */
-      const response = await fetch(
-        'https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/image-to-image',
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${process.env.STABILITY_API_KEY}`,
+      /* ─────────────────────────────────────
+         👀 2. ANÁLISIS VISUAL (MÁS PRECISO Y CORTO)
+      ───────────────────────────────────── */
+      const analysisResponse = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'system',
+            content:
+              'You are an interior designer describing a real space factually, without creativity.',
           },
-          body: formData,
-        }
-      );
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: `
+Describe this interior space so it can be recreated visually with minimal changes.
+Focus on layout, proportions, camera angle, light, walls, floor and windows.
+Describe furniture only by position and size.
+Be concise and factual.
+`,
+              },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: `data:image/png;base64,${imageBase64}`,
+                },
+              },
+            ],
+          },
+        ],
+        max_tokens: 220, // 🔑 MÁS RÁPIDO
+      });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ STABILITY ERROR 👉', errorText);
-        return res.status(500).json({
-          error: 'Error al generar imagen IA',
-          details: errorText,
-        });
-      }
+      const spaceDescription =
+        analysisResponse.choices[0].message.content;
 
-      const result = await response.json();
+      /* ─────────────────────────────────────
+         🎨 3. GENERAR IMAGEN (CAMBIOS MÍNIMOS)
+      ───────────────────────────────────── */
+      const imagePrompt = `
+Generate a photorealistic interior image strictly based on this description:
 
-      if (!result.artifacts?.[0]?.base64) {
-        return res.status(500).json({
-          error: 'Respuesta inválida de Stability',
-        });
-      }
+${spaceDescription}
 
-      console.log('✅ Imagen IA generada correctamente');
+Recreate the same room, same proportions and same camera angle.
+Make the smallest possible changes.
 
+Only update:
+- furniture style
+- colors
+- materials
+- textiles
+- decoration
+
+Do NOT change layout, room size, windows, walls or camera angle.
+
+Style: ${style}
+Natural light. Realistic interior photography.
+Not illustration. Not 3D render.
+`;
+
+      const imageResponse = await openai.images.generate({
+        model: 'gpt-image-1',
+        prompt: imagePrompt,
+        size: '1024x1024',
+      });
+
+      const generatedImageBase64 =
+        imageResponse.data[0].b64_json;
+
+      /* ─────────────────────────────────────
+         ✅ 4. RESPUESTA
+      ───────────────────────────────────── */
       return res.json({
-        previewImageUrl: `data:image/png;base64,${result.artifacts[0].base64}`,
+        previewImageUrl: `data:image/png;base64,${generatedImageBase64}`,
       });
 
     } catch (error) {
-      console.error('🔥 AI IMAGE ERROR FULL 👉', error);
-      return res.status(500).json({ error: 'Error al generar imagen IA' });
+      console.error('🔥 VIRTUAL STAGING ERROR 👉', error);
+      return res.status(500).json({
+        error: 'Error al generar imagen inspiracional',
+      });
     }
   }
 );

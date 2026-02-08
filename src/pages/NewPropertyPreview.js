@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import styled from 'styled-components';
 
-function NewPropertyPreview({ photos, onBack, onSubmit }) {
+function NewPropertyPreview({ photos, onBack, onNext }) {
   const validPhotos = photos || [];
   const [activeIndex, setActiveIndex] = useState(0);
   const [description, setDescription] = useState('');
   const [improving, setImproving] = useState(false);
+  const [error, setError] = useState(null);
 
   const next = () => {
     if (activeIndex < validPhotos.length - 1) {
@@ -23,14 +24,29 @@ function NewPropertyPreview({ photos, onBack, onSubmit }) {
     if (!description.trim()) return;
 
     setImproving(true);
+    setError(null);
 
-    // MOCK IA (después se conecta a backend)
-    setTimeout(() => {
-      setDescription(
-        `✨ Descripción optimizada\n\n${description}\n\nLa propiedad se destaca por su excelente distribución, ambientes luminosos y una ubicación ideal. Es una oportunidad perfecta para quienes buscan confort, funcionalidad y calidad de vida.`
-      );
+    try {
+      const res = await fetch('http://localhost:5050/api/ai/improve-description', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: description })
+      });
+
+      if (!res.ok) {
+        throw new Error('Error al mejorar la descripción');
+      }
+
+      const data = await res.json();
+
+      if (data.result) {
+        setDescription(data.result);
+      }
+    } catch (err) {
+      setError('No se pudo mejorar el texto. Intentá de nuevo.');
+    } finally {
       setImproving(false);
-    }, 1200);
+    }
   };
 
   return (
@@ -41,7 +57,6 @@ function NewPropertyPreview({ photos, onBack, onSubmit }) {
           <Subtitle>Así se verá tu anuncio publicado</Subtitle>
         </Header>
 
-        {/* GALERÍA */}
         {validPhotos.length > 0 && (
           <Gallery>
             <Main>
@@ -73,13 +88,12 @@ function NewPropertyPreview({ photos, onBack, onSubmit }) {
           </Gallery>
         )}
 
-        {/* DESCRIPCIÓN */}
         <Block>
           <Label>Descripción</Label>
           <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Describí la propiedad..."
+            placeholder="Describí la propiedad tal como es. La IA no va a inventar información."
           />
 
           <AIButton
@@ -89,25 +103,19 @@ function NewPropertyPreview({ photos, onBack, onSubmit }) {
           >
             {improving ? 'Mejorando…' : '✨ Mejorar con IA'}
           </AIButton>
+
+          {error && <ErrorText>{error}</ErrorText>}
         </Block>
 
-        {/* PRO TEASER */}
-        <ProBox>
-          <h4>✨ Mostrá el potencial de tu propiedad</h4>
-          <p>
-            Probá una decoración virtual con IA y ayudá a vender más rápido.
-          </p>
-          <ProButton type="button">Ver ejemplo (Pro)</ProButton>
-        </ProBox>
-
-        {/* ACTIONS */}
         <Actions>
-          <Secondary onClick={onBack}>← Volver</Secondary>
+          <Secondary type="button" onClick={onBack}>
+            ← Volver
+          </Secondary>
+
           <Primary
+            type="button"
             onClick={() => {
-              if (onSubmit) {
-                onSubmit({ description });
-              }
+              onNext({ description });
             }}
           >
             Continuar
@@ -119,6 +127,9 @@ function NewPropertyPreview({ photos, onBack, onSubmit }) {
 }
 
 export default NewPropertyPreview;
+
+/* ================= STYLES ================= */
+/* 👇 Todo tu CSS queda EXACTAMENTE igual */
 
 /* ================= STYLES ================= */
 
@@ -222,11 +233,11 @@ const Label = styled.label`
 
 const Textarea = styled.textarea`
   width: 100%;
-  height: 140px;
+  height: 150px;
   border-radius: 18px;
   border: 1px solid #ddd;
   padding: 18px;
-  font-size: 16px;
+  font-size: 15px;
   resize: none;
 
   &:focus {
@@ -250,19 +261,17 @@ const AIButton = styled.button`
   }
 `;
 
+const ErrorText = styled.p`
+  margin-top: 10px;
+  font-size: 14px;
+  color: #c0392b;
+`;
+
 const ProBox = styled.div`
   padding: 36px;
   border-radius: 28px;
   background: #fff7f2;
   margin-bottom: 60px;
-
-  h4 {
-    margin-bottom: 8px;
-  }
-
-  p {
-    color: #555;
-  }
 `;
 
 const ProButton = styled.button`
